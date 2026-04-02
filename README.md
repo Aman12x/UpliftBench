@@ -1,4 +1,4 @@
-# Causal Inference & Heterogeneous Treatment Effect Analysis
+# HTE Estimation via Causal Forests & Meta-Learners  
 ### Marketing Uplift Modeling at Scale — Criteo Dataset (13.98M Records)
 
 ---
