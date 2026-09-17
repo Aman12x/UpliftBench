@@ -190,6 +190,58 @@ All random seeds are fixed (`random_state=42`) throughout preprocessing, model t
 
 ---
 
+## Reproducibility and Seed Variance
+
+Everything below is produced by `run_benchmark.py` and read from `results/*.json` by `summarize_results.py`. Each run draws a deterministic 10% hash sample of the dataset (the seed changes which rows), so these figures are not comparable in level to the full-data results above. They measure how much the comparison moves between samples.
+
+```bash
+python run_benchmark.py --sample-frac 0.1 --seed 42 --outcome visit   # downloads the data on first use
+python summarize_results.py
+pytest tests/
+```
+
+All three meta-learners share one LightGBM configuration (`make_base_learner`). "S-Learner (original config)" is the configuration the original notebook gave the S-learner alone, kept as a labelled extra. The X-learner receives the fitted propensity scores, which removes the convergence warnings its internal propensity model raised. The Causal Forest trains on every sampled training row with a seeded draw.
+
+#### Outcome: `visit`
+
+| Model | Seed 42 | Seed 43 | Seed 44 | Mean | Spread |
+|---|---|---|---|---|---|
+| S-Learner (original config) | 0.3326 | 0.3020 | 0.3317 | 0.3221 | 0.0306 |
+| S-Learner | 0.3435 | 0.2986 | 0.3240 | 0.3220 | 0.0449 |
+| X-Learner | 0.2831 | 0.2548 | 0.3390 | 0.2923 | 0.0843 |
+| Causal Forest | 0.2506 | 0.2930 | 0.2826 | 0.2754 | 0.0424 |
+| T-Learner | 0.2720 | 0.2589 | 0.2710 | 0.2673 | 0.0131 |
+| Random | 0.0667 | -0.0109 | 0.0361 | 0.0306 | 0.0776 |
+
+Rank order by Qini:  
+seed 42: S-Learner > X-Learner > T-Learner > Causal Forest  
+seed 43: S-Learner > Causal Forest > T-Learner > X-Learner  
+seed 44: X-Learner > S-Learner > Causal Forest > T-Learner
+
+Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warnings across runs: 0. Causal Forest confident persuadables by seed: 2.13%, 1.99%, 1.96%.
+
+#### Outcome: `conversion`
+
+| Model | Seed 42 | Seed 43 | Seed 44 | Mean | Spread |
+|---|---|---|---|---|---|
+| S-Learner (original config) | 0.3293 | 0.3944 | 0.2595 | 0.3277 | 0.1348 |
+| S-Learner | 0.2829 | 0.3265 | 0.3170 | 0.3088 | 0.0435 |
+| T-Learner | 0.1975 | 0.4510 | 0.2127 | 0.2871 | 0.2535 |
+| Causal Forest | 0.2800 | 0.2144 | 0.2039 | 0.2328 | 0.0762 |
+| X-Learner | 0.1793 | 0.4215 | 0.0941 | 0.2316 | 0.3274 |
+| Random | -0.0365 | 0.1827 | 0.0019 | 0.0494 | 0.2192 |
+
+Rank order by Qini:  
+seed 42: S-Learner > Causal Forest > T-Learner > X-Learner  
+seed 43: T-Learner > X-Learner > S-Learner > Causal Forest  
+seed 44: S-Learner > T-Learner > Causal Forest > X-Learner
+
+Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warnings across runs: 0. Causal Forest confident persuadables by seed: 0.28%, 0.28%, 0.26%.
+
+**Reading it.** On 10% samples the rank order of the estimators changes from seed to seed for both outcomes, and the spread across seeds is as large as or larger than the gaps between estimators. `conversion` (0.29% positive) is far noisier than `visit` (4.7%). A single split therefore cannot rank these estimators. The full-data comparison needs repeated seeds and intervals on the Qini score before one model is called the winner.
+
+---
+
 ## Limitations & Next Steps
 
 **Current Limitations:**

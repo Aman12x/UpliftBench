@@ -1,0 +1,54 @@
+{
+  "outcome": "conversion",
+  "sample_frac": 0.1,
+  "seed": 43,
+  "rows_sampled": 1396846,
+  "rows_train": 1117476,
+  "rows_test": 279370,
+  "outcome_rate": 0.002889366472753618,
+  "treatment_rate": 0.8496018888266853,
+  "propensity_auc": 0.5056709008886288,
+  "convergence_warnings": 0,
+  "qini": {
+    "S-Learner": 0.32646230309591695,
+    "T-Learner": 0.45099303954299685,
+    "X-Learner": 0.4214578683059945,
+    "Random": 0.18268061051253104,
+    "S-Learner (original config)": 0.39437020511584375,
+    "Causal Forest": 0.2143729549196011
+  },
+  "capture_pct": {
+    "S-Learner": {
+      "20": 80.85205895576333,
+      "30": 84.89211721000096,
+      "50": 89.99525516175011
+    },
+    "T-Learner": {
+      "20": 93.42030151377895,
+      "30": 96.3532687176042,
+      "50": 101.8112945140319
+    },
+    "X-Learner": {
+      "20": 95.33256963156545,
+      "30": 93.36901880635388,
+      "50": 97.91529442522227
+    },
+    "S-Learner (original config)": {
+      "20": 83.39347071737197,
+      "30": 89.5540296422121,
+      "50": 98.94528615109117
+    }
+  },
+  "cate_mean": {
+    "S-Learner": 0.0006262421092026745,
+    "T-Learner": 0.0008333488893761016,
+    "X-Learner": 0.0008563271363945311
+  },
+  "causal_forest": {
+    "train_rows": 1117476,
+    "test_rows": 279370,
+    "confident_persuadables_pct": 0.2809893689372517,
+    "confident_sleeping_dogs_pct": 0.0032215341661595734
+  },
+  "runtime_seconds": 203.0
+}

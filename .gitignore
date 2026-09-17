@@ -1,4 +1,6 @@
-pycache
-__pycache__
+__pycache__/
 *.pyc
-data/data/criteo-uplift-v2.1.csv
+.DS_Store
+.venv/
+data/
+.pytest_cache/

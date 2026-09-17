@@ -3,14 +3,18 @@ import pandas as pd
 from causalml.metrics import qini_score
 
 
-def build_eval_df(y_test, T_test, cate_s, cate_t, cate_x):
+def outcome_label(outcome):
+    return {"visit": "incremental visits", "conversion": "incremental conversions"}[outcome]
+
+
+def build_eval_df(y_test, T_test, cate_s, cate_t, cate_x, seed=42):
     return pd.DataFrame({
         'y': y_test.values,
         'w': T_test.values,
         'S-Learner': cate_s.flatten(),
         'T-Learner': cate_t.flatten(),
         'X-Learner': cate_x.flatten(),
-        'Random': np.random.uniform(size=len(y_test)),
+        'Random': np.random.default_rng(seed).uniform(size=len(y_test)),
     })
 
 
@@ -47,16 +51,19 @@ def policy_simulation(cate, y, treatment, n_bins=100):
     return pct_treated, incremental_conversions
 
 
-def policy_thresholds(cate, name, y_test, T_test, thresholds=None):
+def policy_thresholds(cate, name, y_test, T_test, thresholds=None, outcome="visit"):
     if thresholds is None:
         thresholds = [20, 30, 50]
     pct, inc = policy_simulation(cate, y_test, T_test)
     total = inc[-1]
+    captured = {}
     for threshold in thresholds:
         idx = min(range(len(pct)), key=lambda i: abs(pct[i] - threshold))
         lift_pct = (inc[idx] / total) * 100
-        print(f"{name} — top {threshold}% users captures {lift_pct:.1f}% of total incremental conversions")
+        captured[threshold] = lift_pct
+        print(f"{name} — top {threshold}% users captures {lift_pct:.1f}% of total {outcome_label(outcome)}")
     print()
+    return captured
 
 
 def causal_forest_segments(cate_cf, lb, ub):
