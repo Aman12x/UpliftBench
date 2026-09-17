@@ -59,3 +59,14 @@ def test_paired_difference_separates_a_real_gap_from_no_gap():
     none = out["differences"]["good - good_copy"]
     assert real["ci_low"] > 0                      # the informative model really is better
     assert none["ci_low"] <= 0 <= none["ci_high"]  # identical rankings are not separable
+
+
+def test_qini_curve_is_complete_and_its_area_is_the_qini_score():
+    from src.intervals import qini_curve
+    y, w, scores = _data()
+    pct, curve = qini_curve(y, w, scores["good"])
+    n = len(y)
+    assert len(pct) == len(curve) == n + 1          # one point per row plus the origin, nothing dropped
+    assert pct[0] == 0 and pct[-1] == 100 and curve[0] == 0 and abs(curve[-1] - 1) < 1e-12
+    area = (curve.sum() - np.linspace(0, curve[-1], n + 1).sum()) / (n + 1)
+    assert abs(area - fast_qini(y, w, scores["good"])) < 1e-10

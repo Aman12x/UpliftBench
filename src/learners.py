@@ -64,7 +64,7 @@ def fit_causal_forest(X_train_final, T_train, y_train, sample_frac=None, seed=42
     return cf
 
 
-def predict_causal_forest(cf, X_test_final, sample_frac=None, seed=42):
+def predict_causal_forest(cf, X_test_final, sample_frac=None, seed=42, chunk_rows=200_000):
     if sample_frac is not None:
         test_idx = np.random.default_rng(seed + 1).choice(
             len(X_test_final), size=int(sample_frac * len(X_test_final)), replace=False
@@ -74,5 +74,11 @@ def predict_causal_forest(cf, X_test_final, sample_frac=None, seed=42):
         test_idx = None
         X_te = X_test_final
 
-    cate_cf, lb, ub = cf.predict(X_te, interval=True, alpha=0.05)
+    # Predict in chunks: interval prediction keeps every tree's output in memory, and on
+    # millions of rows that is what runs a 16 GB machine out of memory.
+    parts = [cf.predict(X_te[i:i + chunk_rows], interval=True, alpha=0.05)
+             for i in range(0, len(X_te), chunk_rows)]
+    cate_cf = np.concatenate([p[0] for p in parts])
+    lb = np.concatenate([p[1] for p in parts])
+    ub = np.concatenate([p[2] for p in parts])
     return cate_cf, lb, ub, test_idx

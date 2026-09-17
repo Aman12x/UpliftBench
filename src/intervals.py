@@ -24,6 +24,27 @@ def _qini_from_sorted(y, w):
     return (curve.sum() - random_area) / (n + 1)
 
 
+def qini_curve(y, w, score):
+    """
+    The complete normalized Qini curve for one model: one point per test row plus the origin.
+    Returns (population_pct, curve), both of length n + 1. Nothing is downsampled.
+    """
+    y, w = np.asarray(y, dtype=np.float64), np.asarray(w, dtype=np.float64)
+    order = np.argsort(-np.asarray(score, dtype=np.float64), kind="stable")
+    ys, ws = y[order], w[order]
+    n = len(ys)
+    tr = np.cumsum(ws)
+    ct = np.arange(1, n + 1, dtype=np.float64) - tr
+    with np.errstate(divide="ignore", invalid="ignore"):
+        curve = np.cumsum(ys * ws) - np.cumsum(ys * (1 - ws)) * tr / ct
+    curve = np.concatenate([[0.0], curve])
+    bad = ~np.isfinite(curve)
+    if bad.any():
+        idx = np.arange(n + 1)
+        curve[bad] = np.interp(idx[bad], idx[~bad], curve[~bad])
+    return 100 * np.arange(n + 1) / n, curve / abs(curve[-1])
+
+
 def fast_qini(y, w, score):
     y, w = np.asarray(y, dtype=np.float64), np.asarray(w, dtype=np.float64)
     order = np.argsort(-np.asarray(score, dtype=np.float64), kind="stable")

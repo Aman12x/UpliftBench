@@ -2,6 +2,7 @@
   "outcome": "visit",
   "sample_frac": 0.1,
   "seed": 44,
+  "split_seed": 42,
   "rows_sampled": 1397802,
   "rows_train": 1118241,
   "rows_test": 279561,
@@ -15,7 +16,7 @@
     "X-Learner": 0.33901896246189406,
     "Random": 0.03606412956813038,
     "S-Learner (original config)": 0.3317106130205988,
-    "Causal Forest": 0.2825878420233862
+    "Causal Forest": 0.2825878410489698
   },
   "capture_pct": {
     "S-Learner": {
@@ -50,5 +51,111 @@
     "confident_persuadables_pct": 1.9552083445115735,
     "confident_sleeping_dogs_pct": 0.08012562553431989
   },
-  "runtime_seconds": 169.8
+  "runtime_seconds": 174.5,
+  "bootstrap": {
+    "n_boot": 200,
+    "alpha": 0.05,
+    "test_rows": 279561,
+    "models": {
+      "S-Learner": {
+        "qini": 0.32485445197564483,
+        "ci_low": 0.2713184709568082,
+        "ci_high": 0.3828957389467504,
+        "boot_se": 0.02986204282057807,
+        "share_of_replicates_ranked_first": 0.16
+      },
+      "T-Learner": {
+        "qini": 0.2710233082374469,
+        "ci_low": 0.17971417651065605,
+        "ci_high": 0.37422141292311834,
+        "boot_se": 0.0501052002473948,
+        "share_of_replicates_ranked_first": 0.025
+      },
+      "X-Learner": {
+        "qini": 0.33901896389058633,
+        "ci_low": 0.25467449993860203,
+        "ci_high": 0.447690040326698,
+        "boot_se": 0.05247009476447887,
+        "share_of_replicates_ranked_first": 0.515
+      },
+      "S-Learner (original config)": {
+        "qini": 0.3315901419464247,
+        "ci_low": 0.2727670832757928,
+        "ci_high": 0.3976837077632366,
+        "boot_se": 0.03339259283234928,
+        "share_of_replicates_ranked_first": 0.265
+      },
+      "Causal Forest": {
+        "qini": 0.28556637536620993,
+        "ci_low": 0.19599727982632903,
+        "ci_high": 0.3786644327701475,
+        "boot_se": 0.04713521813742958,
+        "share_of_replicates_ranked_first": 0.035
+      }
+    },
+    "differences": {
+      "S-Learner - T-Learner": {
+        "diff": 0.05383114373819792,
+        "ci_low": -0.04208305629424695,
+        "ci_high": 0.15775543475990333,
+        "separable": false
+      },
+      "S-Learner - X-Learner": {
+        "diff": -0.014164511914941502,
+        "ci_low": -0.11497373763013286,
+        "ci_high": 0.0937766811227133,
+        "separable": false
+      },
+      "S-Learner - S-Learner (original config)": {
+        "diff": -0.00673568997077989,
+        "ci_low": -0.05934103281124353,
+        "ci_high": 0.04417568705610811,
+        "separable": false
+      },
+      "S-Learner - Causal Forest": {
+        "diff": 0.0392880766094349,
+        "ci_low": -0.05261611094644201,
+        "ci_high": 0.13500231016703026,
+        "separable": false
+      },
+      "T-Learner - X-Learner": {
+        "diff": -0.06799565565313942,
+        "ci_low": -0.16377298289740605,
+        "ci_high": 0.026282939493269965,
+        "separable": false
+      },
+      "T-Learner - S-Learner (original config)": {
+        "diff": -0.06056683370897781,
+        "ci_low": -0.1680851720478842,
+        "ci_high": 0.046329470586788914,
+        "separable": false
+      },
+      "T-Learner - Causal Forest": {
+        "diff": -0.014543067128763021,
+        "ci_low": -0.12368780445918344,
+        "ci_high": 0.1054720306838809,
+        "separable": false
+      },
+      "X-Learner - S-Learner (original config)": {
+        "diff": 0.007428821944161612,
+        "ci_low": -0.09734047947196499,
+        "ci_high": 0.10407111081705799,
+        "separable": false
+      },
+      "X-Learner - Causal Forest": {
+        "diff": 0.0534525885243764,
+        "ci_low": -0.05180180627697186,
+        "ci_high": 0.17280583732055535,
+        "separable": false
+      },
+      "S-Learner (original config) - Causal Forest": {
+        "diff": 0.04602376658021479,
+        "ci_low": -0.04668213407288952,
+        "ci_high": 0.14662479809442927,
+        "separable": false
+      }
+    }
+  },
+  "predictions_file": "predictions/predictions_visit_frac0.1_seed44.parquet",
+  "predictions_rows": 279561
 }

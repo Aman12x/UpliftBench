@@ -16,7 +16,7 @@
     "X-Learner": 0.28309970482939484,
     "Random": 0.06666119406677264,
     "S-Learner (original config)": 0.33256536215461613,
-    "Causal Forest": 0.2506168067163261
+    "Causal Forest": 0.2506168087615129
   },
   "capture_pct": {
     "S-Learner": {
@@ -51,7 +51,7 @@
     "confident_persuadables_pct": 2.126647472236628,
     "confident_sleeping_dogs_pct": 0.07188969759831185
   },
-  "runtime_seconds": 256.6,
+  "runtime_seconds": 169.1,
   "bootstrap": {
     "n_boot": 200,
     "alpha": 0.05,
@@ -86,10 +86,10 @@
         "share_of_replicates_ranked_first": 0.335
       },
       "Causal Forest": {
-        "qini": 0.25332394635320155,
-        "ci_low": 0.19294640407783506,
-        "ci_high": 0.328100644890822,
-        "boot_se": 0.037666846237273816,
+        "qini": 0.2533239483983884,
+        "ci_low": 0.19294641032787005,
+        "ci_high": 0.3281006450018609,
+        "boot_se": 0.037666846259958614,
         "share_of_replicates_ranked_first": 0.01
       }
     },
@@ -113,8 +113,8 @@
         "separable": false
       },
       "S-Learner - Causal Forest": {
-        "diff": 0.0910826138138402,
-        "ci_low": 0.013164478717308411,
+        "diff": 0.09108261176865334,
+        "ci_low": 0.013164475989188844,
         "ci_high": 0.1802246969037383,
         "separable": true
       },
@@ -131,9 +131,9 @@
         "separable": false
       },
       "T-Learner - Causal Forest": {
-        "diff": 0.018899127719049835,
-        "ci_low": -0.05943215407664243,
-        "ci_high": 0.10044233506088601,
+        "diff": 0.018899125673862982,
+        "ci_low": -0.059432156426398555,
+        "ci_high": 0.10044233491149604,
         "separable": false
       },
       "X-Learner - S-Learner (original config)": {
@@ -143,17 +143,19 @@
         "separable": false
       },
       "X-Learner - Causal Forest": {
-        "diff": 0.029775762829529206,
-        "ci_low": -0.05095243689054049,
-        "ci_high": 0.11594652027535099,
+        "diff": 0.029775760784342353,
+        "ci_low": -0.050952439197680784,
+        "ci_high": 0.11594651935075671,
         "separable": false
       },
       "S-Learner (original config) - Causal Forest": {
-        "diff": 0.08179517757439919,
-        "ci_low": -0.006234230743003562,
-        "ci_high": 0.16219612006930575,
+        "diff": 0.08179517552921234,
+        "ci_low": -0.006234230849900335,
+        "ci_high": 0.16219611901528172,
         "separable": false
       }
     }
-  }
+  },
+  "predictions_file": "predictions/predictions_visit_frac0.1_seed42.parquet",
+  "predictions_rows": 279595
 }

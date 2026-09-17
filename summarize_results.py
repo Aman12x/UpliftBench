@@ -32,7 +32,22 @@ def table(outcome):
     return "\n".join(lines), "  \n".join(ranks), note
 
 
+def intervals_table(path):
+    r = json.load(open(path))
+    b = r["bootstrap"]
+    lines = ["| Model | Qini | 95% interval | Ranked first in replicates |", "|---|---|---|---|"]
+    for m in sorted(b["models"], key=lambda m: -b["models"][m]["qini"]):
+        v = b["models"][m]
+        lines.append(f"| {m} | {v['qini']:.4f} | {v['ci_low']:.4f} to {v['ci_high']:.4f} | {100 * v['share_of_replicates_ranked_first']:.0f}% |")
+    sep = [f"{k} ({v['diff']:+.4f}, {v['ci_low']:+.4f} to {v['ci_high']:+.4f})" for k, v in b["differences"].items() if v["separable"]]
+    note = (f"Outcome `{r['outcome']}`, {r['rows_test']:,} test rows, seed {r['seed']}, {b['n_boot']} paired bootstrap replicates. "
+            + ("Differences whose interval excludes zero: " + "; ".join(sep) + "." if sep else "No difference between two models excludes zero."))
+    return "\n".join(lines), note
+
+
 if __name__ == "__main__":
     for oc in ("visit", "conversion"):
         t, ranks, note = table(oc)
         print(f"#### Outcome: `{oc}`\n\n{t}\n\nRank order by Qini:  \n{ranks}\n\n{note}\n")
+    t, note = intervals_table("results/benchmark_visit_frac0.1_seed42.json")
+    print(f"#### Bootstrap intervals, seed 42, `visit`\n\n{t}\n\n{note}\n")

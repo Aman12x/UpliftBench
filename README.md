@@ -204,6 +204,8 @@ pytest tests/
 
 All three meta-learners share one LightGBM configuration (`make_base_learner`). "S-Learner (original config)" is the configuration the original notebook gave the S-learner alone, kept as a labelled extra. The X-learner receives the fitted propensity scores, which removes the convergence warnings its internal propensity model raised. The Causal Forest trains on every sampled training row with a seeded draw.
 
+Every run also writes its complete per-row output to `results/predictions/*.parquet` (each test row's outcome, treatment flag and every model's predicted effect, plus the Causal Forest interval), and `analysis/make_plots.py` draws every figure below from those files at full resolution.
+
 #### Outcome: `visit`
 
 | Model | Seed 42 | Seed 43 | Seed 44 | Mean | Spread |
@@ -240,7 +242,31 @@ seed 44: S-Learner > T-Learner > Causal Forest > X-Learner
 
 Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warnings across runs: 0. Causal Forest confident persuadables by seed: 0.28%, 0.28%, 0.26%.
 
-**Reading it.** On 10% samples the rank order of the estimators changes from seed to seed for both outcomes, and the spread across seeds is as large as or larger than the gaps between estimators. `conversion` (0.29% positive) is far noisier than `visit` (4.7%). A single split therefore cannot rank these estimators. The full-data comparison needs repeated seeds and intervals on the Qini score before one model is called the winner.
+#### Bootstrap intervals, seed 42, `visit`
+
+| Model | Qini | 95% interval | Ranked first in replicates |
+|---|---|---|---|
+| S-Learner | 0.3444 | 0.2878 to 0.4116 | 60% |
+| S-Learner (original config) | 0.3351 | 0.2743 to 0.4112 | 34% |
+| X-Learner | 0.2831 | 0.2197 to 0.3612 | 4% |
+| T-Learner | 0.2722 | 0.1947 to 0.3552 | 2% |
+| Causal Forest | 0.2533 | 0.1929 to 0.3281 | 1% |
+
+Outcome `visit`, 279,595 test rows, seed 42, 200 paired bootstrap replicates. Differences whose interval excludes zero: S-Learner - Causal Forest (+0.0911, +0.0132 to +0.1802).
+
+![Qini with bootstrap intervals](results/plots/qini_intervals_visit_frac0.1_seed42.png)
+
+![Seed variance](results/plots/seed_variance_frac0.1.png)
+
+![Qini curves](results/plots/qini_curves_visit_frac0.1_seed42.png)
+
+![Causal Forest per-row intervals](results/plots/cf_uncertainty_visit_frac0.1_seed42.png)
+
+![Same rows on two platforms](results/plots/platform_comparison_visit_frac0.1_seed42.png)
+
+![What moves the Qini score](results/plots/noise_sources_visit_frac0.1.png)
+
+**Reading it.** On 10% samples the rank order of the estimators changes from seed to seed for both outcomes, and the spread across seeds is as large as or larger than the gaps between estimators. The bootstrap intervals say the same thing from inside one sample: at this size only the S-Learner and the Causal Forest are separable. The same code on the same rows also gives different LightGBM scores on Databricks than on a Mac (`results/databricks_visit_frac0.1_seed42.json`), by more than tie order or thread count can explain (`results/sensitivity_visit_frac0.1_seed42.json`); that cause is not yet identified. `conversion` (0.29% positive) is far noisier than `visit` (4.7%). A single split therefore cannot rank these estimators. The full-data comparison needs repeated seeds and intervals on the Qini score before one model is called the winner.
 
 ---
 
