@@ -27,9 +27,10 @@ RESULTS = Path(__file__).parent / "results"
 S_LEARNER_ORIGINAL = {"min_child_samples": 5, "reg_lambda": 0, "reg_alpha": 0}
 
 
-def run(sample_frac, seed, outcome, cf_frac):
+def run(sample_frac, seed, outcome, cf_frac, data_path=None, results_dir=RESULTS):
+    """data_path and results_dir let the same code run against a Databricks volume."""
     t0 = time.time()
-    df = load_data(download_data(), sample_frac=sample_frac, seed=seed)
+    df = load_data(data_path or download_data(), sample_frac=sample_frac, seed=seed)
     X_train, X_test, T_train, T_test, y_train, y_test = split_data(df, outcome=outcome)
 
     with warnings.catch_warnings(record=True) as caught:
@@ -79,8 +80,9 @@ def run(sample_frac, seed, outcome, cf_frac):
         },
         "runtime_seconds": round(time.time() - t0, 1),
     }
-    RESULTS.mkdir(exist_ok=True)
-    dest = RESULTS / f"benchmark_{outcome}_frac{sample_frac}_seed{seed}.json"
+    results_dir = Path(results_dir)
+    results_dir.mkdir(parents=True, exist_ok=True)
+    dest = results_dir / f"benchmark_{outcome}_frac{sample_frac}_seed{seed}.json"
     dest.write_text(json.dumps(out, indent=2))
     print(f"wrote {dest} in {out['runtime_seconds']}s")
     return out

@@ -1,0 +1,35 @@
+name: Build ARM Linux wheels
+
+# causalml and econml publish no aarch64 Linux wheels, and Databricks serverless compute is
+# aarch64. This builds them once for CPython 3.12 so they can be installed from a volume.
+
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/build-arm-wheels.yml"]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    container: quay.io/pypa/manylinux_2_28_aarch64
+    env:
+      PY: /opt/python/cp312-cp312/bin
+    steps:
+      - name: Build wheels
+        run: |
+          $PY/pip install --upgrade pip
+          $PY/pip wheel --no-deps -w raw "causalml==0.16.0" "econml==0.16.0"
+      - name: Repair to manylinux
+        run: |
+          mkdir -p wheelhouse
+          for whl in raw/*.whl; do auditwheel repair "$whl" -w wheelhouse; done
+          ls -l wheelhouse
+      - name: Smoke test in a clean environment
+        run: |
+          $PY/python -m venv /tmp/t
+          /tmp/t/bin/pip install --quiet wheelhouse/*.whl "lightgbm==4.6.0"
+          /tmp/t/bin/python -c "from causalml.inference.meta import BaseXRegressor; from econml.grf import CausalForest; import numpy, sklearn; print('ok', numpy.__version__, sklearn.__version__)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arm-wheels-cp312
+          path: wheelhouse/*.whl

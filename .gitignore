@@ -4,3 +4,5 @@ __pycache__/
 .venv/
 data/
 .pytest_cache/
+.env
+.databrickscfg
