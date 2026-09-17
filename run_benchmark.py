@@ -15,6 +15,7 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.metrics import roc_auc_score
 
 from src.evaluation import build_eval_df, compute_qini, policy_thresholds
+from src.intervals import bootstrap_qini
 from src.learners import (
     fit_causal_forest, fit_s_learner, fit_t_learner, fit_x_learner, make_base_learner,
     predict_causal_forest, predict_s_learner, predict_t_learner, predict_x_learner,
@@ -27,11 +28,14 @@ RESULTS = Path(__file__).parent / "results"
 S_LEARNER_ORIGINAL = {"min_child_samples": 5, "reg_lambda": 0, "reg_alpha": 0}
 
 
-def run(sample_frac, seed, outcome, cf_frac, data_path=None, results_dir=RESULTS):
+def run(sample_frac, seed, outcome, cf_frac, data_path=None, results_dir=RESULTS, split_seed=42, n_boot=0):
     """data_path and results_dir let the same code run against a Databricks volume."""
     t0 = time.time()
-    df = load_data(data_path or download_data(), sample_frac=sample_frac, seed=seed)
-    X_train, X_test, T_train, T_test, y_train, y_test = split_data(df, outcome=outcome)
+    columns = [f"f{i}" for i in range(12)] + ["treatment", outcome]
+    df = load_data(data_path or download_data(), sample_frac=sample_frac, seed=seed, columns=columns)
+    rows_sampled, outcome_rate, treatment_rate = len(df), float(df[outcome].mean()), float(df["treatment"].mean())
+    X_train, X_test, T_train, T_test, y_train, y_test = split_data(df, outcome=outcome, split_seed=split_seed)
+    del df
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", ConvergenceWarning)
@@ -66,8 +70,9 @@ def run(sample_frac, seed, outcome, cf_frac, data_path=None, results_dir=RESULTS
 
     out = {
         "outcome": outcome, "sample_frac": sample_frac, "seed": seed,
-        "rows_sampled": int(len(df)), "rows_train": int(len(X_train)), "rows_test": int(len(X_test)),
-        "outcome_rate": float(df[outcome].mean()), "treatment_rate": float(df["treatment"].mean()),
+        "split_seed": split_seed,
+        "rows_sampled": int(rows_sampled), "rows_train": int(len(X_train)), "rows_test": int(len(X_test)),
+        "outcome_rate": outcome_rate, "treatment_rate": treatment_rate,
         "propensity_auc": float(roc_auc_score(T_test, lr.predict_proba(X_test)[:, 1])),
         "convergence_warnings": int(n_convergence),
         "qini": {k: float(v) for k, v in qini.items()},
@@ -80,9 +85,16 @@ def run(sample_frac, seed, outcome, cf_frac, data_path=None, results_dir=RESULTS
         },
         "runtime_seconds": round(time.time() - t0, 1),
     }
+    if n_boot:
+        scores = {**{k: v.flatten() for k, v in cates.items()},
+                  "S-Learner (original config)": cate_s_orig.flatten(), "Causal Forest": cate_cf.flatten()}
+        out["bootstrap"] = bootstrap_qini(y_test.to_numpy(), T_test.to_numpy(), scores, n_boot=n_boot, seed=seed)
+        out["runtime_seconds"] = round(time.time() - t0, 1)
     results_dir = Path(results_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
-    dest = results_dir / f"benchmark_{outcome}_frac{sample_frac}_seed{seed}.json"
+    tag = f"frac{sample_frac}" if sample_frac else "full"
+    suffix = f"_split{split_seed}" if split_seed != 42 else ""
+    dest = results_dir / f"benchmark_{outcome}_{tag}_seed{seed}{suffix}.json"
     dest.write_text(json.dumps(out, indent=2))
     print(f"wrote {dest} in {out['runtime_seconds']}s")
     return out
@@ -90,9 +102,11 @@ def run(sample_frac, seed, outcome, cf_frac, data_path=None, results_dir=RESULTS
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--sample-frac", type=float, default=0.1)
+    ap.add_argument("--sample-frac", type=float, default=0.1, help="0 runs the full dataset")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--outcome", choices=["visit", "conversion"], default="visit")
     ap.add_argument("--cf-frac", type=float, default=None, help="fraction of the training rows given to the Causal Forest")
+    ap.add_argument("--split-seed", type=int, default=42)
+    ap.add_argument("--n-boot", type=int, default=0, help="bootstrap replicates for Qini intervals")
     a = ap.parse_args()
-    run(a.sample_frac, a.seed, a.outcome, a.cf_frac)
+    run(a.sample_frac or None, a.seed, a.outcome, a.cf_frac, split_seed=a.split_seed, n_boot=a.n_boot)

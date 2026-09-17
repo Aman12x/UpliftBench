@@ -18,7 +18,7 @@ from databricks.sdk.service import compute, jobs, workspace as ws
 
 ROOT = Path(__file__).parent.parent
 WHEELS = "/Volumes/workspace/upliftbench/raw/wheels"
-CODE = ["run_benchmark.py", "src/__init__.py", "src/preprocessing.py", "src/learners.py", "src/evaluation.py",
+CODE = ["run_benchmark.py", "src/__init__.py", "src/preprocessing.py", "src/learners.py", "src/evaluation.py", "src/intervals.py",
         "databricks/02_benchmark_mlflow.py"]
 
 ap = argparse.ArgumentParser()
@@ -26,6 +26,8 @@ ap.add_argument("--sample-frac", default="0.1")
 ap.add_argument("--seed", default="42")
 ap.add_argument("--outcome", default="visit")
 ap.add_argument("--cf-frac", default=None)
+ap.add_argument("--split-seed", default="42")
+ap.add_argument("--n-boot", default="0")
 a = ap.parse_args()
 
 w = WorkspaceClient()
@@ -38,12 +40,13 @@ for rel in CODE:
                        format=ws.ImportFormat.AUTO, overwrite=True)
 
 wheels = [f"{WHEELS}/{f.name}" for f in w.files.list_directory_contents(WHEELS) if f.name.endswith(".whl")]
-params = ["--user", user, "--sample-frac", a.sample_frac, "--seed", a.seed, "--outcome", a.outcome]
+params = ["--user", user, "--sample-frac", a.sample_frac, "--seed", a.seed, "--outcome", a.outcome,
+          "--split-seed", a.split_seed, "--n-boot", a.n_boot]
 if a.cf_frac:
     params += ["--cf-frac", a.cf_frac]
 
 run = w.jobs.submit(
-    run_name=f"upliftbench-benchmark-{a.outcome}-frac{a.sample_frac}-seed{a.seed}",
+    run_name=f"upliftbench-benchmark-{a.outcome}-frac{a.sample_frac}-seed{a.seed}-split{a.split_seed}-cf{a.cf_frac}",
     tasks=[jobs.SubmitTask(task_key="benchmark", environment_key="py312",
                            spark_python_task=jobs.SparkPythonTask(
                                python_file=f"/Workspace{base}/databricks/02_benchmark_mlflow.py", parameters=params))],
@@ -61,7 +64,8 @@ o = w.jobs.get_run_output(r.tasks[0].run_id)
 hit = [l for l in (o.logs or "").splitlines() if l.startswith("RESULT_JSON ")]
 if hit:
     d = json.loads(hit[0][12:])
-    dest = ROOT / "results" / f"databricks_{a.outcome}_frac{a.sample_frac}_seed{a.seed}.json"
+    tag = f"frac{a.sample_frac}" if float(a.sample_frac) else "full"
+    dest = ROOT / "results" / f"databricks_{a.outcome}_{tag}_seed{a.seed}_split{a.split_seed}_cf{a.cf_frac or 'all'}.json"
     dest.write_text(json.dumps(d, indent=2))
     print("saved", dest)
 else:

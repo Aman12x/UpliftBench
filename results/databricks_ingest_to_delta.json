@@ -1,0 +1,32 @@
+{
+  "table": "workspace.upliftbench.criteo_uplift",
+  "rows": 13979592,
+  "min_row_id": 0,
+  "max_row_id": 13979591,
+  "distinct_row_ids": 13979592,
+  "treatment_rate": 0.8500001287591226,
+  "visit_rate": 0.046992000911042324,
+  "conversion_rate": 0.002916680257907384,
+  "null_f0": 0,
+  "by_arm": [
+    {
+      "treatment": 0,
+      "rows": 2096937,
+      "visit_rate": 0.03820095691954503,
+      "conversion_rate": 0.0019375880152813366
+    },
+    {
+      "treatment": 1,
+      "rows": 11882655,
+      "visit_rate": 0.048543360048743316,
+      "conversion_rate": 0.0030894610674129645
+    }
+  ],
+  "numFiles": 1,
+  "sizeInBytes": 180540457,
+  "run_id": 1070804396592688,
+  "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/729807485690308/run/1070804396592688",
+  "duration_seconds": 158,
+  "result_state": "SUCCESS",
+  "source_bytes": 311422618
+}

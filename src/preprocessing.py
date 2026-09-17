@@ -26,7 +26,7 @@ def download_data(dest=DEFAULT_CSV):
     return dest
 
 
-def load_data(path=DEFAULT_CSV, sample_frac=None, seed=42):
+def load_data(path=DEFAULT_CSV, sample_frac=None, seed=42, columns=None):
     """
     Load the dataset with a stable row_id column. With sample_frac, only the
     sampled rows ever reach pandas, so a 10% sample fits in a few hundred MB.
@@ -39,8 +39,9 @@ def load_data(path=DEFAULT_CSV, sample_frac=None, seed=42):
     where = ""
     if sample_frac is not None:
         where = f"WHERE hash(row_id, {int(seed)}) % 10000 < {int(round(sample_frac * 10000))}"
+    select = "*" if columns is None else ", ".join(["row_id", *columns])
     query = f"""
-        SELECT * FROM (
+        SELECT {select} FROM (
             SELECT row_number() OVER () - 1 AS row_id, *
             FROM read_csv_auto('{Path(path)}')
         ) {where}
@@ -59,14 +60,14 @@ def sample_rows(df, sample_frac, seed=42):
     return df[keys % 10000 < int(round(sample_frac * 10000))]
 
 
-def split_data(df, outcome="visit"):
+def split_data(df, outcome="visit", split_seed=42):
     if outcome not in OUTCOMES:
         raise ValueError(f"outcome must be one of {OUTCOMES}, got {outcome!r}")
     X = df[[f"f{i}" for i in range(12)]]
     T = df["treatment"]
     y = df[outcome]
     X_train, X_test, T_train, T_test, y_train, y_test = train_test_split(
-        X, T, y, test_size=0.2, random_state=42
+        X, T, y, test_size=0.2, random_state=split_seed
     )
     return X_train, X_test, T_train, T_test, y_train, y_test
 

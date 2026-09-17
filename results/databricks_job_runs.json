@@ -1,0 +1,82 @@
+[
+  {
+    "run_name": "upliftbench-01-ingest",
+    "run_id": 1070804396592688,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "duration_seconds": 158,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/729807485690308/run/1070804396592688"
+  },
+  {
+    "run_name": "upliftbench-02-benchmark-visit-seed42",
+    "run_id": 784983173664511,
+    "state": "INTERNAL_ERROR",
+    "result": "FAILED",
+    "duration_seconds": 83,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/942798628640855/run/784983173664511"
+  },
+  {
+    "run_name": "upliftbench-diag",
+    "run_id": 700163614763968,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "duration_seconds": 53,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/443748915267659/run/700163614763968"
+  },
+  {
+    "run_name": "upliftbench-diag-env4",
+    "run_id": 453599826811678,
+    "state": "INTERNAL_ERROR",
+    "result": "FAILED",
+    "duration_seconds": 88,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/552390733636302/run/453599826811678"
+  },
+  {
+    "run_name": "upliftbench-diag-env3",
+    "run_id": 379642654331368,
+    "state": "INTERNAL_ERROR",
+    "result": "FAILED",
+    "duration_seconds": 77,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/746965379519589/run/379642654331368"
+  },
+  {
+    "run_name": "upliftbench-diag-env4-pip",
+    "run_id": 374031960523422,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "duration_seconds": 96,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/311687226403928/run/374031960523422"
+  },
+  {
+    "run_name": "upliftbench-diag-env4-isolation",
+    "run_id": 508533412350050,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "duration_seconds": 63,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/386085612219124/run/508533412350050"
+  },
+  {
+    "run_name": "upliftbench-diag-env4-pip-isolated",
+    "run_id": 821792031527549,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "duration_seconds": 63,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/62273325722348/run/821792031527549"
+  },
+  {
+    "run_name": "upliftbench-benchmark-visit-frac0.1-seed42",
+    "run_id": 1039448471963542,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "duration_seconds": 590,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/641389565068321/run/1039448471963542"
+  },
+  {
+    "run_name": "upliftbench-benchmark-visit-frac0-seed42-split42-cf0.1",
+    "run_id": 1068462750241331,
+    "state": "RUNNING",
+    "result": null,
+    "duration_seconds": null,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/911664344622802/run/1068462750241331"
+  }
+]

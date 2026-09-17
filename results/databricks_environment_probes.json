@@ -1,0 +1,302 @@
+{
+  "probes": {
+    "upliftbench-diag-env4-pip-isolated": {
+      "run_id": 821792031527549,
+      "state": "TERMINATED",
+      "result": "SUCCESS",
+      "message": "",
+      "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/62273325722348/run/821792031527549",
+      "output": {
+        "constraint_count": 1,
+        "constraint_build_pins": [],
+        "econml --isolated": {
+          "rc": 1,
+          "seconds": 17,
+          "lines": [
+            "      configuration error: `project.license` must be valid exactly by one definition (2 matches found):",
+            "        File \"/local_disk0/.ephemeral_nfs/envs/pythonEnv-ec15e46e-abef-43f4-88d9-784aac404bfb/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py\", line 143, in get_requires_for_b",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 332, in get_requires_for_build_wheel",
+            "          return self._get_build_requires(config_settings, requirements=[])",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 302, in _get_build_requires",
+            "          raise ValueError(f\"{error}\\n{summary}\") from None",
+            "      ValueError: invalid pyproject.toml config: `project.license`.",
+            "      configuration error: `project.license` must be valid exactly by one definition (2 matches found):"
+          ]
+        },
+        "causalml --isolated": {
+          "rc": 1,
+          "seconds": 24,
+          "lines": [
+            "      Error compiling Cython file:",
+            "          raise CompileError(None, pyx_file)",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx",
+            "          raise CompileError(None, pyx_file)",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx",
+            "        File \"/local_disk0/.ephemeral_nfs/envs/pythonEnv-ec15e46e-abef-43f4-88d9-784aac404bfb/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py\", line 143, in get_requires_for_b",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 332, in get_requires_for_build_wheel",
+            "          return self._get_build_requires(config_settings, requirements=[])",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 302, in _get_build_requires",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx"
+          ]
+        },
+        "imports": "ModuleNotFoundError(\"No module named 'causalml'\")",
+        "versions_before": {
+          "numpy": "2.1.3",
+          "pandas": "2.2.3",
+          "scikit-learn": "1.6.1",
+          "scipy": "1.15.1"
+        },
+        "versions_after": {
+          "numpy": "2.1.3",
+          "pandas": "2.2.3",
+          "scikit-learn": "1.6.1",
+          "scipy": "1.15.1",
+          "causalml": null,
+          "econml": null,
+          "lightgbm": "4.6.0"
+        }
+      }
+    },
+    "upliftbench-diag-env4-isolation": {
+      "run_id": 508533412350050,
+      "state": "TERMINATED",
+      "result": "SUCCESS",
+      "message": "",
+      "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/386085612219124/run/508533412350050",
+      "output": {
+        "pip_env": {
+          "PIP_NO_INPUT": "1"
+        },
+        "pip_config": ":env:.no-input='1'\nglobal.constraint='/local_disk0/.ephemeral_nfs/envs/pythonEnv-2b0eee2b-8ad7-4fe0-802e-b0b3453b5294/pipConstraints.txt'",
+        "setuptools": "74.0.0",
+        "pip": "25.0.1",
+        "cython": "3.0.12",
+        "upgrade build tools": {
+          "rc": 0,
+          "tail": [
+            "    Can't uninstall 'setuptools'. No files were found to uninstall.",
+            "  Attempting uninstall: Cython",
+            "    Found existing installation: Cython 3.0.12",
+            "    Not uninstalling cython at /databricks/python3/lib/python3.12/site-packages, outside environment /local_disk0/.ephemeral_nfs/envs/pythonEnv-2b0eee2b-8ad7-4fe0-802e-b0b3453b5294",
+            "    Can't uninstall 'Cython'. No files were found to uninstall.",
+            "Successfully installed Cython-3.3.0 setuptools-84.0.0 wheel-0.48.0"
+          ]
+        },
+        "econml isolated": {
+          "rc": 1,
+          "tail": [
+            "  note: This error originates from a subprocess, and is likely not a problem with pip.",
+            "error: subprocess-exited-with-error",
+            "\u00d7 Getting requirements to build wheel did not run successfully.",
+            "\u2502 exit code: 1",
+            "\u2570\u2500> See above for output.",
+            "note: This error originates from a subprocess, and is likely not a problem with pip."
+          ]
+        },
+        "causalml isolated": {
+          "rc": 1,
+          "tail": [
+            "  note: This error originates from a subprocess, and is likely not a problem with pip.",
+            "error: subprocess-exited-with-error",
+            "\u00d7 Getting requirements to build wheel did not run successfully.",
+            "\u2502 exit code: 1",
+            "\u2570\u2500> See above for output.",
+            "note: This error originates from a subprocess, and is likely not a problem with pip."
+          ]
+        },
+        "imports": "ModuleNotFoundError(\"No module named 'causalml'\")"
+      }
+    },
+    "upliftbench-diag-env4-pip": {
+      "run_id": 374031960523422,
+      "state": "TERMINATED",
+      "result": "SUCCESS",
+      "message": "",
+      "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/311687226403928/run/374031960523422",
+      "output": {
+        "python": "3.12.3",
+        "machine": "aarch64",
+        "numpy": "2.1.3",
+        "pandas": "2.2.3",
+        "scikit-learn": "1.6.1",
+        "pip econml==0.16.0": {
+          "rc": 1,
+          "lines": [
+            "  error: subprocess-exited-with-error",
+            "      configuration error: `project.license` must be valid exactly by one definition (2 matches found):",
+            "        File \"/local_disk0/.ephemeral_nfs/envs/pythonEnv-0fd4e22d-0655-41aa-b0a8-7e434c45fa85/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py\", line 143, in get_requires_for_build_wheel",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 332, in get_requires_for_build_wheel",
+            "          return self._get_build_requires(config_settings, requirements=[])",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 302, in _get_build_requires",
+            "          pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)",
+            "          config = read_configuration(filepath, True, ignore_option_errors, dist)",
+            "          raise ValueError(f\"{error}\\n{summary}\") from None",
+            "      ValueError: invalid pyproject.toml config: `project.license`.",
+            "      configuration error: `project.license` must be valid exactly by one definition (2 matches found):",
+            "  note: This error originates from a subprocess, and is likely not a problem with pip.",
+            "error: subprocess-exited-with-error",
+            "note: This error originates from a subprocess, and is likely not a problem with pip."
+          ]
+        },
+        "pip causalml==0.16.0": {
+          "rc": 1,
+          "lines": [
+            "  error: subprocess-exited-with-error",
+            "      Error compiling Cython file:",
+            "          raise CompileError(None, pyx_file)",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx",
+            "          raise CompileError(None, pyx_file)",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx",
+            "        File \"/local_disk0/.ephemeral_nfs/envs/pythonEnv-0fd4e22d-0655-41aa-b0a8-7e434c45fa85/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py\", line 143, in get_requires_for_build_wheel",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 332, in get_requires_for_build_wheel",
+            "          return self._get_build_requires(config_settings, requirements=[])",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 302, in _get_build_requires",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx",
+            "  note: This error originates from a subprocess, and is likely not a problem with pip.",
+            "error: subprocess-exited-with-error",
+            "note: This error originates from a subprocess, and is likely not a problem with pip."
+          ]
+        },
+        "pip econml": {
+          "rc": 1,
+          "lines": [
+            "  error: subprocess-exited-with-error",
+            "      configuration error: `project.license` must be valid exactly by one definition (2 matches found):",
+            "        File \"/local_disk0/.ephemeral_nfs/envs/pythonEnv-0fd4e22d-0655-41aa-b0a8-7e434c45fa85/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py\", line 143, in get_requires_for_build_wheel",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 332, in get_requires_for_build_wheel",
+            "          return self._get_build_requires(config_settings, requirements=[])",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 302, in _get_build_requires",
+            "          pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)",
+            "          config = read_configuration(filepath, True, ignore_option_errors, dist)",
+            "          raise ValueError(f\"{error}\\n{summary}\") from None",
+            "      ValueError: invalid pyproject.toml config: `project.license`.",
+            "      configuration error: `project.license` must be valid exactly by one definition (2 matches found):",
+            "  note: This error originates from a subprocess, and is likely not a problem with pip.",
+            "error: subprocess-exited-with-error",
+            "note: This error originates from a subprocess, and is likely not a problem with pip."
+          ]
+        },
+        "pip causalml": {
+          "rc": 1,
+          "lines": [
+            "  error: subprocess-exited-with-error",
+            "      Error compiling Cython file:",
+            "          raise CompileError(None, pyx_file)",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx",
+            "          raise CompileError(None, pyx_file)",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx",
+            "        File \"/local_disk0/.ephemeral_nfs/envs/pythonEnv-0fd4e22d-0655-41aa-b0a8-7e434c45fa85/lib/python3.12/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py\", line 143, in get_requires_for_build_wheel",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 332, in get_requires_for_build_wheel",
+            "          return self._get_build_requires(config_settings, requirements=[])",
+            "        File \"/usr/local/lib/python3.12/dist-packages/setuptools/build_meta.py\", line 302, in _get_build_requires",
+            "      Cython.Compiler.Errors.CompileError: causalml/inference/tree/_tree/_utils.pyx",
+            "  note: This error originates from a subprocess, and is likely not a problem with pip.",
+            "error: subprocess-exited-with-error",
+            "note: This error originates from a subprocess, and is likely not a problem with pip."
+          ]
+        },
+        "imports": "ModuleNotFoundError(\"No module named 'causalml'\")"
+      }
+    },
+    "upliftbench-diag-env3": {
+      "run_id": 379642654331368,
+      "state": "INTERNAL_ERROR",
+      "result": "FAILED",
+      "message": "Task diag failed with message: Unexpected error during library installation.",
+      "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/746965379519589/run/379642654331368",
+      "error": "Run failed with error message\n Unexpected error during library installation"
+    },
+    "upliftbench-diag-env4": {
+      "run_id": 453599826811678,
+      "state": "INTERNAL_ERROR",
+      "result": "FAILED",
+      "message": "Task diag failed with message: Unexpected error during library installation.",
+      "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/552390733636302/run/453599826811678",
+      "error": "Run failed with error message\n Unexpected error during library installation"
+    },
+    "upliftbench-diag": {
+      "run_id": 700163614763968,
+      "state": "TERMINATED",
+      "result": "SUCCESS",
+      "message": "",
+      "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/443748915267659/run/700163614763968",
+      "output": {
+        "python": "3.11.10",
+        "platform": "Linux-6.1.177-224.371.amzn2023.aarch64-aarch64-with-glibc2.35",
+        "cpu_count": 4,
+        "memory_total_gb": 16.41,
+        "memory_available_gb": 6.01,
+        "net https://pypi.org/simple/duckdb/": 200,
+        "net https://files.pythonhosted.org/": "<HTTPError 404: 'Not Found'>",
+        "net https://github.com/": 200,
+        "pip duckdb": {
+          "rc": 0,
+          "tail": [
+            "Collecting duckdb",
+            "  Downloading duckdb-1.5.5-cp311-cp311-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl.metadata (4.2 kB)",
+            "Downloading duckdb-1.5.5-cp311-cp311-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl (19.4 MB)",
+            "Installing collected packages: duckdb",
+            "Successfully installed duckdb-1.5.5"
+          ]
+        },
+        "pip lightgbm==4.6.0": {
+          "rc": 0,
+          "tail": [
+            "Collecting lightgbm==4.6.0",
+            "  Downloading lightgbm-4.6.0-py3-none-manylinux2014_aarch64.whl.metadata (17 kB)",
+            "Requirement already satisfied: numpy>=1.17.0 in /databricks/python3/lib/python3.11/site-packages (from lightgbm==4.6.0) (1.23.5)",
+            "Requirement already satisfied: scipy in /databricks/python3/lib/python3.11/site-packages (from lightgbm==4.6.0) (1.11.1)",
+            "Downloading lightgbm-4.6.0-py3-none-manylinux2014_aarch64.whl (3.5 MB)",
+            "Installing collected packages: lightgbm",
+            "Successfully installed lightgbm-4.6.0"
+          ]
+        },
+        "pip econml==0.16.0": {
+          "rc": 1,
+          "tail": [
+            "            required: ['text']",
+            "      ",
+            "      [end of output]",
+            "  ",
+            "  note: This error originates from a subprocess, and is likely not a problem with pip.",
+            "error: subprocess-exited-with-error",
+            "",
+            "\u00d7 Getting requirements to build wheel did not run successfully.",
+            "\u2502 exit code: 1",
+            "\u2570\u2500> See above for output.",
+            "",
+            "note: This error originates from a subprocess, and is likely not a problem with pip."
+          ]
+        },
+        "pip causalml==0.16.0": {
+          "rc": 1,
+          "tail": [
+            "      causalml/inference/tree/_tree/_tree.cpp: In function \u2018void** __pyx_f_5numpy_9broadcast_5iters_iters(PyArrayMultiIterObject*)\u2019:",
+            "      causalml/inference/tree/_tree/_tree.cpp:21148:13: error: \u2018PyArray_MultiIter_ITERS\u2019 was not declared in this scope; did you mean \u2018PyArray_MultiIter_NEXT\u2019?",
+            "      21148 |   __pyx_r = PyArray_MultiIter_ITERS(__pyx_v_self);",
+            "            |             ^~~~~~~~~~~~~~~~~~~~~~~",
+            "            |             PyArray_MultiIter_NEXT",
+            "      error: command '/usr/bin/aarch64-linux-gnu-g++' failed with exit code 1",
+            "      [end of output]",
+            "  ",
+            "  note: This error originates from a subprocess, and is likely not a problem with pip.",
+            "  ERROR: Failed building wheel for causalml",
+            "ERROR: ERROR: Failed to build installable wheels for some pyproject.toml based projects (causalml)",
+            ""
+          ]
+        },
+        "preinstalled": [
+          "Cython==0.29.32",
+          "lightgbm==4.6.0",
+          "mlflow-skinny==2.11.4",
+          "numpy==1.23.5",
+          "pandas==1.5.3",
+          "pip==24.2",
+          "scikit-learn==1.3.0",
+          "scipy==1.11.1",
+          "setuptools==75.1.0"
+        ]
+      }
+    }
+  }
+}
