@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import shap
 from causalml.metrics import plot_gain
-from src.evaluation import policy_simulation
+from src.evaluation import outcome_label, policy_simulation
 
 os.makedirs('plots', exist_ok=True)
 
@@ -65,14 +65,15 @@ def plot_qini_curves(df_eval):
     plt.show()
 
 
-def plot_policy_simulation(cate_list, names, colors, y_test, T_test):
+def plot_policy_simulation(cate_list, names, colors, y_test, T_test, outcome="visit"):
     fig, ax = plt.subplots(figsize=(10, 6))
     for cate, name, color in zip(cate_list, names, colors):
         pct, inc = policy_simulation(cate, y_test, T_test)
         ax.plot(pct, inc, label=name, color=color)
     ax.set_xlabel("% of users treated")
-    ax.set_ylabel("Incremental conversions")
-    ax.set_title("Policy simulation — incremental conversions vs budget")
+    label = outcome_label(outcome)
+    ax.set_ylabel(label.capitalize())
+    ax.set_title(f"Policy simulation — {label} vs budget")
     ax.legend()
     ax.grid(True, alpha=0.3)
     plt.tight_layout()

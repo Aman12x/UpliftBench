@@ -5,7 +5,7 @@
 
 ## Executive Summary
 
-This project delivers a production-grade causal inference pipeline for **predicting individual-level response to marketing treatments**. Applied to the Criteo Uplift v2.1 dataset (13.98 million customer records, 3 GB), the analysis estimates Conditional Average Treatment Effects (CATE) using three competing meta-learner algorithms and a Causal Forest. The best-performing model achieves a **Qini coefficient of 0.3759**, meaning targeted deployment to the top 20% of ranked customers captures **77.7% of all incremental conversions** — a result that directly translates to improved marketing ROI without increasing spend.
+This project delivers a production-grade causal inference pipeline for **predicting individual-level response to marketing treatments**. Applied to the Criteo Uplift v2.1 dataset (13.98 million customer records, 3 GB), the analysis estimates Conditional Average Treatment Effects (CATE) using three competing meta-learner algorithms and a Causal Forest. The best-performing model achieves a **Qini coefficient of 0.3759**, meaning targeted deployment to the top 20% of ranked customers captures **77.7% of all incremental site visits** — a result that directly translates to improved marketing ROI without increasing spend.
 
 ---
 
@@ -33,6 +33,8 @@ Uplift modeling — grounded in causal inference — solves this by estimating t
 | Treatment | Binary (85% treated, 15% control) |
 | Primary Outcome | `visit` (binary; 4.7% positive rate) |
 | Secondary Outcome | `conversion` (binary; 0.29% positive rate) |
+
+Every full-data result in this README models the primary outcome, `visit`. "Incremental visits" means the extra site visits caused by the treatment.
 | Propensity AUC | 0.5093 — confirms near-random treatment assignment |
 
 The near-random propensity score (AUC ≈ 0.51) validates the quasi-experimental design, lending the CATE estimates high internal validity.
@@ -64,7 +66,7 @@ Raw Data (CSV, 3GB)
   Evaluation & Policy Simulation
   - Qini coefficient scoring
   - Cumulative gain curves
-  - Policy simulation (budget vs. incremental conversions)
+  - Policy simulation (budget vs. incremental visits)
   - Uncertainty quantification (95% CI via Causal Forest)
   - SHAP feature importance
 ```
@@ -99,7 +101,7 @@ All models use **LightGBM** as the base learner — gradient-boosted decision tr
 
 ### Key Business Insights
 
-- **Targeting efficiency:** Deploying to the top 20% of customers ranked by predicted CATE captures 77.7% of all incremental conversions. A random targeting strategy would capture only 20%.
+- **Targeting efficiency:** Deploying to the top 20% of customers ranked by predicted CATE captures 77.7% of all incremental visits. A random targeting strategy would capture only 20%.
 - **Heterogeneous response confirmed:** All four models independently identify meaningful variation in treatment response across customer segments, validating the uplift modeling approach.
 - **Causal Forest uncertainty:** Of the ~280K evaluated records, 1.9% are confident persuadables (lower 95% CI > 0) and 0.1% are confident sleeping dogs (upper 95% CI < 0). The remaining 98% have uncertain effect estimates, underscoring the value of probabilistic targeting over binary rule-based approaches.
 - **Feature drivers:** SHAP analysis on the T-Learner identifies which of the 12 covariates (f0–f11) most drive treatment effect heterogeneity — informing feature selection for downstream targeting systems.
@@ -108,15 +110,15 @@ All models use **LightGBM** as the base learner — gradient-boosted decision tr
 
 ## Business Impact Framing
 
-Assume a hypothetical campaign of 1,000,000 customers with a cost of $1 per contact and an incremental conversion value of $50.
+Assume a hypothetical campaign of 1,000,000 customers with a cost of $1 per contact and a fixed value per incremental site visit.
 
-| Strategy | Contacts | Incremental Conversions | Revenue | Cost | Net ROI |
+| Strategy | Contacts | Incremental Visits | Revenue | Cost | Net ROI |
 |---|---|---|---|---|---|
 | Untargeted (100%) | 1,000,000 | baseline | $X | $1,000,000 | baseline |
 | Top 20% (S-Learner) | 200,000 | ~77.7% of baseline | ~$0.78X | $200,000 | Significantly positive |
 | Random 20% | 200,000 | ~20% of baseline | ~$0.20X | $200,000 | Negative |
 
-Reducing contact volume by 80% while retaining 77.7% of incremental conversions is a **3.9x improvement in conversion efficiency** versus random sampling, directly reducing customer acquisition cost (CAC).
+Reducing contact volume by 80% while retaining 77.7% of incremental visits is a **3.9x improvement in targeting efficiency** versus random sampling, directly reducing customer acquisition cost (CAC).
 
 ---
 
@@ -182,9 +184,9 @@ All random seeds are fixed (`random_state=42`) throughout preprocessing, model t
 
 **Qini Coefficient** — The primary evaluation metric. Measures the area between the model's cumulative gain curve and the random targeting baseline. Higher values indicate better uplift ranking ability. Range: [0, 1].
 
-**Cumulative Gain Curve** — Plots the fraction of incremental conversions captured as a function of the fraction of population contacted, sorted by descending predicted CATE.
+**Cumulative Gain Curve** — Plots the fraction of incremental visits captured as a function of the fraction of population contacted, sorted by descending predicted CATE.
 
-**Policy Simulation** — Translates the gain curve into actionable budget vs. conversion tradeoff curves for campaign planning.
+**Policy Simulation** — Translates the gain curve into actionable budget vs. incremental-visit tradeoff curves for campaign planning.
 
 **Confidence Intervals (Causal Forest)** — 95% bootstrap confidence intervals on individual CATE estimates, enabling probabilistic customer segmentation (persuadables, sleeping dogs, uncertain).
 
@@ -252,7 +254,7 @@ Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warn
 **Recommended Next Steps:**
 1. **Model deployment:** Package S-Learner scoring pipeline as a REST API or batch scoring job for integration with campaign management platforms.
 2. **Online validation:** Run a prospective A/B test deploying S-Learner targeting vs. random targeting to validate Qini estimates in production.
-3. **Conversion outcome modeling:** Replicate the analysis using `conversion` as the outcome variable (currently only `visit` was modeled) for revenue-level impact estimation.
+3. **Conversion outcome at full scale:** The full-data results above model `visit`. `conversion` has been run on 10% samples (see Reproducibility and Seed Variance) and is too noisy at that size to rank estimators. Repeat it on the full dataset with several seeds for revenue-level impact estimation.
 4. **Threshold optimization:** Define a production targeting threshold on predicted CATE that balances precision, recall, and cost constraints for specific campaign budgets.
 5. **Feature enrichment:** Join behavioral or CRM features to augment the 12 anonymized covariates and potentially improve CATE estimation accuracy.
 

@@ -248,7 +248,7 @@ plot_qini_curves(df_eval)
 ```
 
 ### Policy Simulation
-Model incremental conversions captured as a function of targeting budget.
+Model incremental visits captured as a function of targeting budget.
 
 
 ```python
