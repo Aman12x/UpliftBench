@@ -1,0 +1,71 @@
+{
+  "env": {
+    "python": "3.12.3",
+    "machine": "aarch64",
+    "cpu_count": 4,
+    "memory_total_gb": 16.41,
+    "memory_available_gb": 6.82,
+    "causalml": "0.16.0",
+    "econml": "0.16.0",
+    "lightgbm": "4.6.0",
+    "scikit-learn": "1.6.1",
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "duckdb": "1.5.5"
+  },
+  "result": {
+    "outcome": "visit",
+    "sample_frac": 0.1,
+    "seed": 42,
+    "rows_sampled": 1397972,
+    "rows_train": 1118377,
+    "rows_test": 279595,
+    "outcome_rate": 0.047027408274271584,
+    "treatment_rate": 0.8500434915720773,
+    "propensity_auc": 0.5071683329299106,
+    "convergence_warnings": 0,
+    "qini": {
+      "S-Learner": 0.3019064699151415,
+      "T-Learner": 0.24490920144294923,
+      "X-Learner": 0.2998734247751738,
+      "Random": 0.06666119406677264,
+      "S-Learner (original config)": 0.36437332758324154,
+      "Causal Forest": 0.2504079589702627
+    },
+    "capture_pct": {
+      "S-Learner": {
+        "20": 74.17588572473068,
+        "30": 80.38294254918398,
+        "50": 86.58032150133388
+      },
+      "T-Learner": {
+        "20": 68.71194506205991,
+        "30": 74.70574791763285,
+        "50": 80.64903312201562
+      },
+      "X-Learner": {
+        "20": 73.31833164811343,
+        "30": 79.69928485856657,
+        "50": 85.36626703667271
+      },
+      "S-Learner (original config)": {
+        "20": 78.29105792697517,
+        "30": 86.19604642624805,
+        "50": 93.90318862344807
+      }
+    },
+    "cate_mean": {
+      "S-Learner": 0.006857938963402477,
+      "T-Learner": 0.007812843009550296,
+      "X-Learner": 0.007629098550783282
+    },
+    "causal_forest": {
+      "train_rows": 1118377,
+      "test_rows": 279595,
+      "confident_persuadables_pct": 2.041524347717234,
+      "confident_sleeping_dogs_pct": 0.08405014395822528
+    },
+    "runtime_seconds": 483.8,
+    "peak_rss_gb": 3.65
+  }
+}
