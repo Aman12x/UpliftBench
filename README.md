@@ -2,7 +2,7 @@
 
 **A reproducible benchmark of four heterogeneous-treatment-effect estimators on 13.98 million Criteo customer records, with bootstrap intervals, repeated train/test splits, and a Databricks pipeline.**
 
-Uplift modeling asks which customers a marketing treatment actually moves. This repository benchmarks the S-Learner, T-Learner and X-Learner (LightGBM base learners) and EconML's Causal Forest on the Criteo Uplift v2.1 dataset, scores them with the Qini coefficient, and, unlike the original version of this work, reports how much of the difference between models is noise. The answer is most of it: on the full dataset the three best estimators cannot be told apart at 95%.
+Uplift modeling asks which customers a marketing treatment actually moves. This repository benchmarks the S-Learner, T-Learner and X-Learner (LightGBM base learners) and EconML's Causal Forest on the Criteo Uplift v2.1 dataset, scores them with the Qini coefficient, and reports how much of the difference between models is noise. The answer is most of it: on the full dataset the three best estimators cannot be told apart at 95%.
 
 ## Headline results
 
@@ -37,7 +37,7 @@ Targeting the top 20% of customers ranked by the S-Learner captures about 78% of
 | Metric | Qini coefficient as defined by `causalml.metrics.qini_score`, plus the share of incremental visits captured in the top 20% and 50% of the ranking |
 | Uncertainty | 200 paired bootstrap replicates over test rows per run, giving an interval for each model and for each difference between two models |
 
-The four estimators share one LightGBM configuration so the comparison is like for like. The S-Learner's original settings (`min_child_samples=5`, no regularization) are kept as a labelled fifth model because the first version of this benchmark used them for the S-Learner alone. The X-Learner receives the fitted propensity scores rather than fitting its own, which removes the convergence warnings the earlier version produced.
+The four estimators share one LightGBM configuration so the comparison is like for like. The S-Learner's original settings (`min_child_samples=5`, no regularization) are kept as a labelled fifth model so both configurations can be compared. The X-Learner receives the fitted propensity scores rather than fitting its own, which avoids the convergence warnings of causalml's internal propensity model.
 
 ## Results in detail
 
@@ -222,7 +222,6 @@ modeling.ipynb              The original exploratory notebook, kept as run
 - The features are anonymized, so the SHAP analysis in the notebook identifies covariate indices rather than business meaning.
 - The cross-platform difference in LightGBM scores is unexplained.
 - The Causal Forest was fitted on at most 25% of the training rows because of the memory available on Free Edition.
-- The published abstract for the first version of this work reported a single unseeded run and described the outcome as conversions. The tables above supersede those figures.
 
 ## Data
 
