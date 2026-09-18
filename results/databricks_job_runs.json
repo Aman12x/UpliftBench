@@ -4,6 +4,7 @@
     "run_id": 1070804396592688,
     "state": "TERMINATED",
     "result": "SUCCESS",
+    "message": "",
     "duration_seconds": 158,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/729807485690308/run/1070804396592688"
   },
@@ -12,6 +13,7 @@
     "run_id": 784983173664511,
     "state": "INTERNAL_ERROR",
     "result": "FAILED",
+    "message": "Task benchmark failed with message: Workload failed, see run output for details.",
     "duration_seconds": 83,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/942798628640855/run/784983173664511"
   },
@@ -20,6 +22,7 @@
     "run_id": 700163614763968,
     "state": "TERMINATED",
     "result": "SUCCESS",
+    "message": "",
     "duration_seconds": 53,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/443748915267659/run/700163614763968"
   },
@@ -28,6 +31,7 @@
     "run_id": 453599826811678,
     "state": "INTERNAL_ERROR",
     "result": "FAILED",
+    "message": "Task diag failed with message: Unexpected error during library installation.",
     "duration_seconds": 88,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/552390733636302/run/453599826811678"
   },
@@ -36,6 +40,7 @@
     "run_id": 379642654331368,
     "state": "INTERNAL_ERROR",
     "result": "FAILED",
+    "message": "Task diag failed with message: Unexpected error during library installation.",
     "duration_seconds": 77,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/746965379519589/run/379642654331368"
   },
@@ -44,6 +49,7 @@
     "run_id": 374031960523422,
     "state": "TERMINATED",
     "result": "SUCCESS",
+    "message": "",
     "duration_seconds": 96,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/311687226403928/run/374031960523422"
   },
@@ -52,6 +58,7 @@
     "run_id": 508533412350050,
     "state": "TERMINATED",
     "result": "SUCCESS",
+    "message": "",
     "duration_seconds": 63,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/386085612219124/run/508533412350050"
   },
@@ -60,6 +67,7 @@
     "run_id": 821792031527549,
     "state": "TERMINATED",
     "result": "SUCCESS",
+    "message": "",
     "duration_seconds": 63,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/62273325722348/run/821792031527549"
   },
@@ -68,15 +76,53 @@
     "run_id": 1039448471963542,
     "state": "TERMINATED",
     "result": "SUCCESS",
+    "message": "",
     "duration_seconds": 590,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/641389565068321/run/1039448471963542"
   },
   {
     "run_name": "upliftbench-benchmark-visit-frac0-seed42-split42-cf0.1",
     "run_id": 1068462750241331,
-    "state": "RUNNING",
-    "result": null,
-    "duration_seconds": null,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "message": "",
+    "duration_seconds": 2659,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/911664344622802/run/1068462750241331"
+  },
+  {
+    "run_name": "upliftbench-benchmark-visit-frac0-seed42-split42-cf0.1",
+    "run_id": 77786631564670,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "message": "",
+    "duration_seconds": 1379,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/253496370360115/run/77786631564670"
+  },
+  {
+    "run_name": "upliftbench-benchmark-visit-frac0-seed42-split42-cf0.25",
+    "run_id": 347149384671857,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "message": "",
+    "duration_seconds": 2166,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/815114469902505/run/347149384671857"
+  },
+  {
+    "run_name": "upliftbench-benchmark-visit-frac0-seed42-split42-cf0.5",
+    "run_id": 5303615706839,
+    "state": "INTERNAL_ERROR",
+    "result": "FAILED",
+    "message": "Task benchmark failed with message: Execution ran out of memory.\nPlease contact Databricks support and provide the trace ID: 7474654347607702/863885252624360/5303615706839/322247874685171.",
+    "duration_seconds": 3806,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/863885252624360/run/5303615706839"
+  },
+  {
+    "run_name": "upliftbench-benchmark-visit-frac0-seed42-split42-cf1.0",
+    "run_id": 732156921292677,
+    "state": "INTERNAL_ERROR",
+    "result": "FAILED",
+    "message": "Task benchmark failed with message: Execution ran out of memory.\nPlease contact Databricks support and provide the trace ID: 7474654347607702/526358059653054/732156921292677/275429195951153.",
+    "duration_seconds": 1766,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/526358059653054/run/732156921292677"
   }
 ]

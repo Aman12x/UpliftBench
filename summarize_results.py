@@ -46,13 +46,36 @@ def intervals_table(path):
     return "\n".join(lines), note
 
 
+def forest_scaling_table():
+    rows = []
+    for f in sorted(glob.glob("results/databricks_visit_full_seed42_split42_cf*.json")):
+        d = json.load(open(f))
+        frac = float(f.split("_cf")[1].split(".json")[0].replace(".partial", ""))
+        if f.endswith(".partial.json"):
+            rows.append((frac, f"{int(round(d['rows_train'] * frac)):,}", "out of memory", "—", "—", f"{d['peak_rss_gb']} GB at the checkpoint, then killed"))
+        else:
+            r = d["result"]
+            b = r["bootstrap"]["models"]["Causal Forest"]
+            rows.append((frac, f"{r['causal_forest']['train_rows']:,}", f"{r['qini']['Causal Forest']:.4f}",
+                         f"{b['ci_low']:.4f} to {b['ci_high']:.4f}", f"{r['causal_forest']['confident_persuadables_pct']:.2f}%",
+                         f"{r['peak_rss_gb']} GB, {r['runtime_seconds'] / 60:.0f} min"))
+    lines = ["| Share of training rows | Rows | Causal Forest Qini | 95% interval | Confident persuadables | Peak memory, time |",
+             "|---|---|---|---|---|---|"]
+    for frac, n, q, ci, pers, mem in sorted(rows):
+        lines.append(f"| {frac:.0%} | {n} | {q} | {ci} | {pers} | {mem} |")
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
     for oc in ("visit", "conversion"):
         t, ranks, note = table(oc)
         print(f"#### Outcome: `{oc}`\n\n{t}\n\nRank order by Qini:  \n{ranks}\n\n{note}\n")
     t, note = intervals_table("results/benchmark_visit_frac0.1_seed42.json")
     print(f"#### Bootstrap intervals, seed 42, `visit`, 10% sample\n\n{t}\n\n{note}\n")
-    for f in sorted(glob.glob("results/databricks_visit_full_*.json")):
+    print("#### Scaling the Causal Forest on Databricks Free Edition (16.4 GB serverless, full dataset, seed 42)\n")
+    print(forest_scaling_table())
+    print("\nThe meta-learners are identical across these runs; only the forest changes. Free Edition fits the forest on a quarter of the training rows and not on half.\n")
+    for f in sorted(glob.glob("results/databricks_visit_full_*_cf0.1.json")):
         d = json.load(open(f))
         r = d["result"]
         t, note = intervals_table(f)

@@ -90,7 +90,8 @@ def run(sample_frac, seed, outcome, cf_frac, data_path=None, results_dir=RESULTS
         rd.mkdir(parents=True, exist_ok=True)
         tag = f"frac{sample_frac}" if sample_frac else "full"
         suffix = f"_split{split_seed}" if split_seed != 42 else ""
-        name = f"benchmark_{outcome}_{tag}_seed{seed}{suffix}"
+        cf_tag = f"_cf{cf_frac}" if cf_frac else ""
+        name = f"benchmark_{outcome}_{tag}_seed{seed}{suffix}{cf_tag}"
         (rd / (name + (".partial.json" if checkpoint else ".json"))).write_text(json.dumps(payload, indent=2))
         return rd, name
 

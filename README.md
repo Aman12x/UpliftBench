@@ -254,6 +254,17 @@ Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warn
 
 Outcome `visit`, 279,595 test rows, seed 42, 200 paired bootstrap replicates. Differences whose interval excludes zero: S-Learner - Causal Forest (+0.0911, +0.0132 to +0.1802).
 
+#### Scaling the Causal Forest on Databricks Free Edition (16.4 GB serverless, full dataset, seed 42)
+
+| Share of training rows | Rows | Causal Forest Qini | 95% interval | Confident persuadables | Peak memory, time |
+|---|---|---|---|---|---|
+| 10% | 1,118,367 | 0.2586 | 0.2360 to 0.2854 | 1.84% | 6.17 GB, 22 min |
+| 25% | 2,795,918 | 0.3049 | 0.2807 to 0.3355 | 1.90% | 6.39 GB, 35 min |
+| 50% | 5,591,836 | out of memory | — | — | 6.44 GB at the checkpoint, then killed |
+| 100% | 11,183,673 | out of memory | — | — | 6.64 GB at the checkpoint, then killed |
+
+The meta-learners are identical across these runs; only the forest changes. Free Edition fits the forest on a quarter of the training rows and not on half.
+
 #### Full dataset on Databricks: Causal Forest on 1,118,367 training rows
 
 | Model | Qini | 95% interval | Ranked first in replicates |
