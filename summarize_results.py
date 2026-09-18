@@ -67,8 +67,8 @@ def headline_table():
     return "\n".join(lines), n
 
 
-def full_data_splits_table():
-    files = sorted(glob.glob("results/databricks_visit_full_seed42_split*_cf0.25.json"))
+def full_data_splits_table(outcome="visit"):
+    files = sorted(glob.glob(f"results/databricks_{outcome}_full_seed42_split*_cf0.25.json"))
     runs = [json.load(open(f))["result"] for f in files]
     if not runs:
         return "", ""
@@ -83,8 +83,15 @@ def full_data_splits_table():
         cells = " | ".join(f"{v:.4f} [{c['ci_low']:.3f}, {c['ci_high']:.3f}]" for v, c in zip(q, cis))
         lines.append(f"| {m} | {cells} | {mean:.4f} | {max(q) - min(q):.4f} |")
     ranks = "  \n".join(f"split {r['split_seed']}: " + " > ".join(sorted(names, key=lambda m: -r["qini"][m])) for r in runs)
-    note = (f"Full dataset, {runs[0]['rows_test']:,} test rows per split, Causal Forest on 25% of training rows, "
-            f"200 paired bootstrap replicates per split, {sum(r['runtime_seconds'] for r in runs) / 60:.0f} minutes of serverless compute in total.")
+    sep = {}
+    for r in runs:
+        for k, v in r["bootstrap"]["differences"].items():
+            if v["separable"]:
+                sep[k] = sep.get(k, 0) + 1
+    always = sorted(k for k, n in sep.items() if n == len(runs))
+    note = (f"Full dataset, outcome `{outcome}` ({100 * runs[0]['outcome_rate']:.2f}% positive), {runs[0]['rows_test']:,} test rows per split, Causal Forest on 25% of training rows, "
+            f"200 paired bootstrap replicates per split, {sum(r['runtime_seconds'] for r in runs) / 60:.0f} minutes of serverless compute in total. "
+            + ("Differences that exclude zero on every split: " + "; ".join(always) + "." if always else "No difference between two models excludes zero on every split."))
     return "\n".join(lines) + "\n\nRank order by Qini:  \n" + ranks, note
 
 
@@ -113,8 +120,11 @@ def render_all():
     t, r = headline_table()
     out.append(f"<!-- generated:headline -->\n{t}\n\nFull dataset, {r['rows_train']:,} training rows and {r['rows_test']:,} test rows per split, three train/test splits, "
                f"Causal Forest on 25% of the training rows. Every figure is read from `results/`.\n<!-- /generated:headline -->")
-    t, note = full_data_splits_table()
+    t, note = full_data_splits_table("visit")
     out.append(f"<!-- generated:splits -->\n{t}\n\n{note}\n<!-- /generated:splits -->")
+    t, note = full_data_splits_table("conversion")
+    if t:
+        out.append(f"<!-- generated:splits-conversion -->\n{t}\n\n{note}\n<!-- /generated:splits-conversion -->")
     out.append("<!-- generated:forest -->\n" + forest_scaling_table() + "\n<!-- /generated:forest -->")
     for oc in ("visit", "conversion"):
         t, ranks, note = table(oc)

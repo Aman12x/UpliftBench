@@ -18,11 +18,12 @@ Uplift modeling asks which customers a marketing treatment actually moves. This 
 Full dataset, 11,183,673 training rows and 2,795,919 test rows per split, three train/test splits, Causal Forest on 25% of the training rows. Every figure is read from `results/`.
 <!-- /generated:headline -->
 
-Three findings from the full dataset:
+Four findings from the full dataset:
 
 1. **The top three estimators are statistically tied.** The S-Learner, the X-Learner and the S-Learner with its original settings are not separable at 95% on any of the three splits. The S-Learner is the most stable across splits, so it remains a reasonable production choice, but the benchmark does not support calling it the winner.
 2. **A single train/test split cannot rank the estimators.** The T-Learner separates from the top three on one split and not on another; the split alone moves its Qini by 0.02, as much as the gap that separated it.
-3. **The Causal Forest improves with data and still trails.** Fitting it on 25% of the training rows rather than 10% raises its Qini from 0.259 to 0.305 with non-overlapping intervals. It remains below every meta-learner on every split.
+3. **On the rarer outcome the S-Learner does lead.** With `conversion` (0.29% positive) as the outcome, the S-Learner scores highest on all three splits and its difference from the T-Learner and the Causal Forest excludes zero on every split. Its difference from the X-Learner excludes zero on two splits of three.
+4. **The Causal Forest improves with data and still trails.** Fitting it on 25% of the training rows rather than 10% raises its Qini from 0.259 to 0.305 with non-overlapping intervals. It remains below every meta-learner on every split.
 
 Targeting the top 20% of customers ranked by the S-Learner captures about 78% of the incremental visits in the test set, against 20% for random targeting.
 
@@ -32,7 +33,7 @@ Targeting the top 20% of customers ranked by the S-Learner captures about 78% of
 |---|---|
 | Dataset | Criteo Uplift v2.1, 13,979,592 rows, 12 anonymized covariates |
 | Treatment | Binary, 85% treated and 15% control; propensity AUC 0.509, so assignment is close to random |
-| Outcome | `visit` (4.7% positive). Every full-data result models visits. `conversion` (0.29% positive) is run on 10% samples only |
+| Outcome | `visit` (4.7% positive) is the primary outcome. `conversion` (0.29% positive) is run on the full dataset as well, in its own section |
 | Split | 80/20 train/test, repeated with three split seeds on the full dataset |
 | Metric | Qini coefficient as defined by `causalml.metrics.qini_score`, plus the share of incremental visits captured in the top 20% and 50% of the ranking |
 | Uncertainty | 200 paired bootstrap replicates over test rows per run, giving an interval for each model and for each difference between two models |
@@ -57,12 +58,35 @@ split 42: S-Learner (original config) > S-Learner > X-Learner > T-Learner > Caus
 split 43: S-Learner (original config) > S-Learner > T-Learner > X-Learner > Causal Forest  
 split 44: S-Learner > S-Learner (original config) > X-Learner > T-Learner > Causal Forest
 
-Full dataset, 2,795,919 test rows per split, Causal Forest on 25% of training rows, 200 paired bootstrap replicates per split, 102 minutes of serverless compute in total.
+Full dataset, outcome `visit` (4.70% positive), 2,795,919 test rows per split, Causal Forest on 25% of training rows, 200 paired bootstrap replicates per split, 102 minutes of serverless compute in total. Differences that exclude zero on every split: S-Learner (original config) - Causal Forest; S-Learner - Causal Forest; T-Learner - Causal Forest; X-Learner - Causal Forest.
 <!-- /generated:splits -->
 
 ![Qini with bootstrap intervals, full dataset](results/plots/qini_intervals_databricks-visit_full_seed42_split42_cf0.25.png)
 
 ![Qini curves, full dataset](results/plots/qini_curves_databricks-visit_full_seed42_split42_cf0.25.png)
+
+### Full dataset, conversion as the outcome
+
+The same three splits with `conversion` (0.29% positive) as the outcome. Each test set holds about 8,000 conversions against 131,000 visits, so the intervals are roughly twice as wide.
+
+<!-- generated:splits-conversion -->
+| Model | Split 42 | Split 43 | Split 44 | Mean | Spread |
+|---|---|---|---|---|---|
+| S-Learner | 0.4063 [0.383, 0.426] | 0.3730 [0.351, 0.404] | 0.3735 [0.342, 0.401] | 0.3842 | 0.0333 |
+| S-Learner (original config) | 0.3790 [0.352, 0.405] | 0.3673 [0.338, 0.394] | 0.3655 [0.335, 0.391] | 0.3706 | 0.0135 |
+| X-Learner | 0.3365 [0.292, 0.371] | 0.3399 [0.298, 0.390] | 0.3046 [0.260, 0.356] | 0.3270 | 0.0353 |
+| T-Learner | 0.3135 [0.273, 0.363] | 0.3140 [0.266, 0.368] | 0.2777 [0.221, 0.335] | 0.3017 | 0.0363 |
+| Causal Forest | 0.2100 [0.169, 0.265] | 0.2553 [0.214, 0.308] | 0.2111 [0.156, 0.263] | 0.2254 | 0.0453 |
+
+Rank order by Qini:  
+split 42: S-Learner > S-Learner (original config) > X-Learner > T-Learner > Causal Forest  
+split 43: S-Learner > S-Learner (original config) > X-Learner > T-Learner > Causal Forest  
+split 44: S-Learner > S-Learner (original config) > X-Learner > T-Learner > Causal Forest
+
+Full dataset, outcome `conversion` (0.29% positive), 2,795,919 test rows per split, Causal Forest on 25% of training rows, 200 paired bootstrap replicates per split, 117 minutes of serverless compute in total. Differences that exclude zero on every split: S-Learner (original config) - Causal Forest; S-Learner - Causal Forest; S-Learner - T-Learner; X-Learner - Causal Forest.
+<!-- /generated:splits-conversion -->
+
+![Qini with bootstrap intervals, conversion, full dataset](results/plots/qini_intervals_databricks-conversion_full_seed42_split42_cf0.25.png)
 
 ### Scaling the Causal Forest
 
@@ -218,7 +242,7 @@ modeling.ipynb              The original exploratory notebook, kept as run
 
 ## Limitations
 
-- Only `visit` is modelled at full scale. `conversion` (0.29% positive) is far noisier at 10% scale and would need the full dataset and several splits before any model could be ranked on it.
+- `conversion` is rare (0.29% positive), so its intervals are about twice as wide as those for `visit` and its rankings move more between splits.
 - The features are anonymized, so the SHAP analysis in the notebook identifies covariate indices rather than business meaning.
 - The cross-platform difference in LightGBM scores is unexplained.
 - The Causal Forest was fitted on at most 25% of the training rows because of the memory available on Free Edition.
