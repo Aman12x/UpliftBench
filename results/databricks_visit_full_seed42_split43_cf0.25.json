@@ -1,0 +1,178 @@
+{
+  "env": {
+    "python": "3.12.3",
+    "machine": "aarch64",
+    "cpu_count": 4,
+    "memory_total_gb": 16.41,
+    "memory_available_gb": 6.76,
+    "causalml": "0.16.0",
+    "econml": "0.16.0",
+    "lightgbm": "4.6.0",
+    "scikit-learn": "1.6.1",
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "duckdb": "1.5.5"
+  },
+  "result": {
+    "outcome": "visit",
+    "sample_frac": null,
+    "seed": 42,
+    "split_seed": 43,
+    "rows_sampled": 13979592,
+    "rows_train": 11183673,
+    "rows_test": 2795919,
+    "outcome_rate": 0.046992000911042324,
+    "treatment_rate": 0.8500001287591226,
+    "propensity_auc": 0.5089256308387818,
+    "convergence_warnings": 0,
+    "qini": {
+      "S-Learner": 0.36451828920925095,
+      "T-Learner": 0.35575347210897723,
+      "X-Learner": 0.3548206323239937,
+      "Random": -0.0038171441033739905,
+      "S-Learner (original config)": 0.36602151298678004,
+      "Causal Forest": 0.28113182422083
+    },
+    "capture_pct": {
+      "S-Learner": {
+        "20": 78.45344821314205,
+        "30": 85.04500601899827,
+        "50": 94.29670353096236
+      },
+      "T-Learner": {
+        "20": 76.37307339643569,
+        "30": 86.58774745063542,
+        "50": 93.40310264447312
+      },
+      "X-Learner": {
+        "20": 75.06159317092593,
+        "30": 84.7490878759183,
+        "50": 93.76503751658892
+      },
+      "S-Learner (original config)": {
+        "20": 78.18001467245,
+        "30": 84.62984777125479,
+        "50": 94.60218701947576
+      }
+    },
+    "cate_mean": {
+      "S-Learner": 0.007049986253376691,
+      "T-Learner": 0.007432210574960652,
+      "X-Learner": 0.00738629137162491
+    },
+    "causal_forest": {
+      "train_rows": 2795918,
+      "test_rows": 2795919,
+      "confident_persuadables_pct": 1.9854652441647989,
+      "confident_sleeping_dogs_pct": 0.08816421362707574
+    },
+    "runtime_seconds": 2088.6,
+    "bootstrap": {
+      "n_boot": 200,
+      "alpha": 0.05,
+      "test_rows": 2795919,
+      "models": {
+        "S-Learner": {
+          "qini": 0.36420699209266477,
+          "ci_low": 0.3492417926415363,
+          "ci_high": 0.3810030162818176,
+          "boot_se": 0.008430675423004248,
+          "share_of_replicates_ranked_first": 0.29
+        },
+        "T-Learner": {
+          "qini": 0.3556337713672363,
+          "ci_low": 0.33353304955281554,
+          "ci_high": 0.3839999734628115,
+          "boot_se": 0.013025407500275867,
+          "share_of_replicates_ranked_first": 0.155
+        },
+        "X-Learner": {
+          "qini": 0.3548206319278237,
+          "ci_low": 0.33570821910621423,
+          "ci_high": 0.37477053005899896,
+          "boot_se": 0.010436608611323733,
+          "share_of_replicates_ranked_first": 0.07
+        },
+        "S-Learner (original config)": {
+          "qini": 0.3660430476453596,
+          "ci_low": 0.35254345514388075,
+          "ci_high": 0.38156398575455214,
+          "boot_se": 0.008116796279028182,
+          "share_of_replicates_ranked_first": 0.485
+        },
+        "Causal Forest": {
+          "qini": 0.2826134882663693,
+          "ci_low": 0.25409038987468296,
+          "ci_high": 0.30659142635627373,
+          "boot_se": 0.013315376743897095,
+          "share_of_replicates_ranked_first": 0.0
+        }
+      },
+      "differences": {
+        "S-Learner - T-Learner": {
+          "diff": 0.008573220725428488,
+          "ci_low": -0.013091859333787188,
+          "ci_high": 0.026789041124626437,
+          "separable": false
+        },
+        "S-Learner - X-Learner": {
+          "diff": 0.009386360164841068,
+          "ci_low": -0.009477131509837372,
+          "ci_high": 0.030956964054076826,
+          "separable": false
+        },
+        "S-Learner - S-Learner (original config)": {
+          "diff": -0.0018360555526948374,
+          "ci_low": -0.011515986458761795,
+          "ci_high": 0.0066172319267769324,
+          "separable": false
+        },
+        "S-Learner - Causal Forest": {
+          "diff": 0.08159350382629549,
+          "ci_low": 0.059119907122543135,
+          "ci_high": 0.11096968088110636,
+          "separable": true
+        },
+        "T-Learner - X-Learner": {
+          "diff": 0.0008131394394125802,
+          "ci_low": -0.018113792601176265,
+          "ci_high": 0.022282891431899467,
+          "separable": false
+        },
+        "T-Learner - S-Learner (original config)": {
+          "diff": -0.010409276278123325,
+          "ci_low": -0.02947631480309321,
+          "ci_high": 0.010329218747498588,
+          "separable": false
+        },
+        "T-Learner - Causal Forest": {
+          "diff": 0.073020283100867,
+          "ci_low": 0.05031919184831877,
+          "ci_high": 0.10696194979765357,
+          "separable": true
+        },
+        "X-Learner - S-Learner (original config)": {
+          "diff": -0.011222415717535905,
+          "ci_low": -0.028093608238500923,
+          "ci_high": 0.006171213387716803,
+          "separable": false
+        },
+        "X-Learner - Causal Forest": {
+          "diff": 0.07220714366145442,
+          "ci_low": 0.04673631294953795,
+          "ci_high": 0.10168114783640823,
+          "separable": true
+        },
+        "S-Learner (original config) - Causal Forest": {
+          "diff": 0.08342955937899033,
+          "ci_low": 0.06217003340630439,
+          "ci_high": 0.11111296304056822,
+          "separable": true
+        }
+      }
+    },
+    "predictions_file": "predictions/predictions_visit_full_seed42_split43_cf0.25.parquet",
+    "predictions_rows": 2795919,
+    "peak_rss_gb": 6.25
+  }
+}

@@ -124,5 +124,23 @@
     "message": "Task benchmark failed with message: Execution ran out of memory.\nPlease contact Databricks support and provide the trace ID: 7474654347607702/526358059653054/732156921292677/275429195951153.",
     "duration_seconds": 1766,
     "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/526358059653054/run/732156921292677"
+  },
+  {
+    "run_name": "upliftbench-benchmark-visit-frac0-seed42-split43-cf0.25",
+    "run_id": 1037057339202735,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "message": "",
+    "duration_seconds": 2178,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/480429882349047/run/1037057339202735"
+  },
+  {
+    "run_name": "upliftbench-benchmark-visit-frac0-seed42-split44-cf0.25",
+    "run_id": 684304253004471,
+    "state": "TERMINATED",
+    "result": "SUCCESS",
+    "message": "",
+    "duration_seconds": 2039,
+    "run_page_url": "https://dbc-76a9b1fe-e824.cloud.databricks.com/?o=7474654347607702#job/1095929471724863/run/684304253004471"
   }
 ]

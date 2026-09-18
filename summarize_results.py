@@ -46,6 +46,27 @@ def intervals_table(path):
     return "\n".join(lines), note
 
 
+def full_data_splits_table():
+    files = sorted(glob.glob("results/databricks_visit_full_seed42_split*_cf0.25.json"))
+    runs = [json.load(open(f))["result"] for f in files]
+    if not runs:
+        return "", ""
+    names = [m for m in MODELS if m in runs[0]["qini"] and m != "Random"]
+    lines = ["| Model | " + " | ".join(f"Split {r['split_seed']}" for r in runs) + " | Mean | Spread |", "|---|" + "---|" * (len(runs) + 2)]
+    rows = []
+    for m in names:
+        q = [r["qini"][m] for r in runs]
+        cis = [r["bootstrap"]["models"][m] for r in runs]
+        rows.append((sum(q) / len(q), m, q, cis))
+    for mean, m, q, cis in sorted(rows, reverse=True):
+        cells = " | ".join(f"{v:.4f} [{c['ci_low']:.3f}, {c['ci_high']:.3f}]" for v, c in zip(q, cis))
+        lines.append(f"| {m} | {cells} | {mean:.4f} | {max(q) - min(q):.4f} |")
+    ranks = "  \n".join(f"split {r['split_seed']}: " + " > ".join(sorted(names, key=lambda m: -r["qini"][m])) for r in runs)
+    note = (f"Full dataset, {runs[0]['rows_test']:,} test rows per split, Causal Forest on 25% of training rows, "
+            f"200 paired bootstrap replicates per split, {sum(r['runtime_seconds'] for r in runs) / 60:.0f} minutes of serverless compute in total.")
+    return "\n".join(lines) + "\n\nRank order by Qini:  \n" + ranks, note
+
+
 def forest_scaling_table():
     rows = []
     for f in sorted(glob.glob("results/databricks_visit_full_seed42_split42_cf*.json")):
@@ -72,6 +93,9 @@ if __name__ == "__main__":
         print(f"#### Outcome: `{oc}`\n\n{t}\n\nRank order by Qini:  \n{ranks}\n\n{note}\n")
     t, note = intervals_table("results/benchmark_visit_frac0.1_seed42.json")
     print(f"#### Bootstrap intervals, seed 42, `visit`, 10% sample\n\n{t}\n\n{note}\n")
+    t, note = full_data_splits_table()
+    if t:
+        print(f"#### Full dataset, three train/test splits, on Databricks\n\n{t}\n\n{note}\n")
     print("#### Scaling the Causal Forest on Databricks Free Edition (16.4 GB serverless, full dataset, seed 42)\n")
     print(forest_scaling_table())
     print("\nThe meta-learners are identical across these runs; only the forest changes. Free Edition fits the forest on a quarter of the training rows and not on half.\n")
