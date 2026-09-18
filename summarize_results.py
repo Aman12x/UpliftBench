@@ -34,6 +34,7 @@ def table(outcome):
 
 def intervals_table(path):
     r = json.load(open(path))
+    r = r.get("result", r)
     b = r["bootstrap"]
     lines = ["| Model | Qini | 95% interval | Ranked first in replicates |", "|---|---|---|---|"]
     for m in sorted(b["models"], key=lambda m: -b["models"][m]["qini"]):
@@ -50,4 +51,12 @@ if __name__ == "__main__":
         t, ranks, note = table(oc)
         print(f"#### Outcome: `{oc}`\n\n{t}\n\nRank order by Qini:  \n{ranks}\n\n{note}\n")
     t, note = intervals_table("results/benchmark_visit_frac0.1_seed42.json")
-    print(f"#### Bootstrap intervals, seed 42, `visit`\n\n{t}\n\n{note}\n")
+    print(f"#### Bootstrap intervals, seed 42, `visit`, 10% sample\n\n{t}\n\n{note}\n")
+    for f in sorted(glob.glob("results/databricks_visit_full_*.json")):
+        d = json.load(open(f))
+        r = d["result"]
+        t, note = intervals_table(f)
+        cf = r["causal_forest"]
+        print(f"#### Full dataset on Databricks: Causal Forest on {cf['train_rows']:,} training rows\n\n{t}\n\n{note} "
+              f"Peak memory {r['peak_rss_gb']} GB, {r['runtime_seconds'] / 60:.0f} minutes on {d['env']['cpu_count']} cores. "
+              f"Confident persuadables {cf['confident_persuadables_pct']:.2f}%, confident sleeping dogs {cf['confident_sleeping_dogs_pct']:.2f}%.\n")

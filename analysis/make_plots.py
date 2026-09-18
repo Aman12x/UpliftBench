@@ -52,7 +52,8 @@ def tag_of(path):
 
 def describe(r):
     size = "full dataset" if not r.get("sample_frac") else f"{r['sample_frac']:.0%} sample"
-    return f"outcome: {r['outcome']} · {size} · {r['rows_test']:,} test rows · seed {r['seed']}"
+    where = " · Databricks serverless" if "peak_rss_gb" in r and r.get("rows_sampled", 0) > 5_000_000 else ""
+    return f"outcome: {r['outcome']} · {size} · {r['rows_test']:,} test rows · seed {r['seed']}{where}"
 
 
 def save(fig, name):
@@ -87,8 +88,9 @@ def plot_intervals(path):
     ax.set_xlim(min(v["ci_low"] for v in b.values()) - 0.02, hi + 0.13 * (hi + 0.1) + 0.06)
     ax.set_title("Qini score with 95% bootstrap interval")
     sep = [k for k, v in r["bootstrap"]["differences"].items() if v["separable"]]
-    note = f"{describe(r)} · {r['bootstrap']['n_boot']} paired replicates\n" + (
-        "Pairs whose difference excludes zero: " + "; ".join(sep) if sep else "No pair of models is separable at 95%.")
+    import textwrap
+    pairs = textwrap.fill("Pairs whose difference excludes zero: " + "; ".join(sep), width=110) if sep else "No pair of models is separable at 95%."
+    note = f"{describe(r)} · {r['bootstrap']['n_boot']} paired replicates\n" + pairs
     fig.text(0.01, -0.02, note, color=INK2, fontsize=8.5, va="top")
     save(fig, f"qini_intervals_{tag_of(path)}.png")
 
@@ -97,8 +99,13 @@ def plot_intervals(path):
 def predictions_for(path):
     r = result_of(path)
     f = r.get("predictions_file")
-    p = RESULTS / f if f else None
-    return (r, pd.read_parquet(p)) if p and p.exists() else (r, None)
+    if not f:
+        return r, None
+    # Full-data prediction files are too large for the repository and live under data/ (gitignored)
+    for p in (RESULTS / f, ROOT / "data" / f):
+        if p.exists():
+            return r, pd.read_parquet(p)
+    return r, None
 
 
 def small_multiples(names, title, note, draw, xlabel, ylabel, sharey=True):

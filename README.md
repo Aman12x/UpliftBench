@@ -242,7 +242,7 @@ seed 44: S-Learner > T-Learner > Causal Forest > X-Learner
 
 Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warnings across runs: 0. Causal Forest confident persuadables by seed: 0.28%, 0.28%, 0.26%.
 
-#### Bootstrap intervals, seed 42, `visit`
+#### Bootstrap intervals, seed 42, `visit`, 10% sample
 
 | Model | Qini | 95% interval | Ranked first in replicates |
 |---|---|---|---|
@@ -253,6 +253,20 @@ Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warn
 | Causal Forest | 0.2533 | 0.1929 to 0.3281 | 1% |
 
 Outcome `visit`, 279,595 test rows, seed 42, 200 paired bootstrap replicates. Differences whose interval excludes zero: S-Learner - Causal Forest (+0.0911, +0.0132 to +0.1802).
+
+#### Full dataset on Databricks: Causal Forest on 1,118,367 training rows
+
+| Model | Qini | 95% interval | Ranked first in replicates |
+|---|---|---|---|
+| S-Learner (original config) | 0.3700 | 0.3527 to 0.3874 | 56% |
+| S-Learner | 0.3660 | 0.3491 to 0.3818 | 16% |
+| X-Learner | 0.3643 | 0.3449 to 0.3856 | 28% |
+| T-Learner | 0.3364 | 0.3121 to 0.3580 | 0% |
+| Causal Forest | 0.2589 | 0.2360 to 0.2854 | 0% |
+
+Outcome `visit`, 2,795,919 test rows, seed 42, 200 paired bootstrap replicates. Differences whose interval excludes zero: S-Learner - T-Learner (+0.0297, +0.0099 to +0.0500); S-Learner - Causal Forest (+0.1072, +0.0789 to +0.1297); T-Learner - X-Learner (-0.0280, -0.0495 to -0.0069); T-Learner - S-Learner (original config) (-0.0336, -0.0525 to -0.0080); T-Learner - Causal Forest (+0.0775, +0.0511 to +0.1019); X-Learner - Causal Forest (+0.1054, +0.0747 to +0.1294); S-Learner (original config) - Causal Forest (+0.1111, +0.0810 to +0.1322). Peak memory 6.17 GB, 22 minutes on 4 cores. Confident persuadables 1.84%, confident sleeping dogs 0.08%.
+
+![Qini with bootstrap intervals, full dataset](results/plots/qini_intervals_databricks-visit_full_seed42_split42_cf0.1.png)
 
 ![Qini with bootstrap intervals](results/plots/qini_intervals_visit_frac0.1_seed42.png)
 
@@ -266,7 +280,7 @@ Outcome `visit`, 279,595 test rows, seed 42, 200 paired bootstrap replicates. Di
 
 ![What moves the Qini score](results/plots/noise_sources_visit_frac0.1.png)
 
-**Reading it.** On 10% samples the rank order of the estimators changes from seed to seed for both outcomes, and the spread across seeds is as large as or larger than the gaps between estimators. The bootstrap intervals say the same thing from inside one sample: at this size only the S-Learner and the Causal Forest are separable. The same code on the same rows also gives different LightGBM scores on Databricks than on a Mac (`results/databricks_visit_frac0.1_seed42.json`), by more than tie order or thread count can explain (`results/sensitivity_visit_frac0.1_seed42.json`); that cause is not yet identified. `conversion` (0.29% positive) is far noisier than `visit` (4.7%). A single split therefore cannot rank these estimators. The full-data comparison needs repeated seeds and intervals on the Qini score before one model is called the winner.
+**Reading it.** On the full dataset the S-Learner, the X-Learner and the original-configuration S-Learner are not separable from each other at 95%; the T-Learner and the Causal Forest are separable from all three. The headline S-Learner Qini of 0.3759 above came from one split and one unseeded run; this run's S-Learner scores 0.3660 with an interval of 0.3491 to 0.3818. On 10% samples the rank order of the estimators changes from seed to seed for both outcomes, and the spread across seeds is as large as or larger than the gaps between estimators. The bootstrap intervals say the same thing from inside one sample: at this size only the S-Learner and the Causal Forest are separable. The same code on the same rows also gives different LightGBM scores on Databricks than on a Mac (`results/databricks_visit_frac0.1_seed42.json`), by more than tie order or thread count can explain (`results/sensitivity_visit_frac0.1_seed42.json`); that cause is not yet identified. `conversion` (0.29% positive) is far noisier than `visit` (4.7%). A single split therefore cannot rank these estimators. The full-data comparison needs repeated seeds and intervals on the Qini score before one model is called the winner.
 
 ---
 
