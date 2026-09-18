@@ -1,213 +1,93 @@
-# HTE Estimation via Causal Forests & Meta-Learners  
-### Marketing Uplift Modeling at Scale — Criteo Dataset (13.98M Records)
+# UpliftBench
 
----
+**A reproducible benchmark of four heterogeneous-treatment-effect estimators on 13.98 million Criteo customer records, with bootstrap intervals, repeated train/test splits, and a Databricks pipeline.**
 
-## Executive Summary
+Uplift modeling asks which customers a marketing treatment actually moves. This repository benchmarks the S-Learner, T-Learner and X-Learner (LightGBM base learners) and EconML's Causal Forest on the Criteo Uplift v2.1 dataset, scores them with the Qini coefficient, and, unlike the original version of this work, reports how much of the difference between models is noise. The answer is most of it: on the full dataset the three best estimators cannot be told apart at 95%.
 
-This project delivers a production-grade causal inference pipeline for **predicting individual-level response to marketing treatments**. Applied to the Criteo Uplift v2.1 dataset (13.98 million customer records, 3 GB), the analysis estimates Conditional Average Treatment Effects (CATE) using three competing meta-learner algorithms and a Causal Forest. The best-performing model achieves a **Qini coefficient of 0.3759**, meaning targeted deployment to the top 20% of ranked customers captures **77.7% of all incremental site visits** — a result that directly translates to improved marketing ROI without increasing spend.
+## Headline results
 
----
+<!-- generated:headline -->
+| Model | Mean Qini over 3 splits | Range across splits | Top 20% capture (mean) | Top 50% capture (mean) |
+|---|---|---|---|---|
+| S-Learner (original config) | 0.3677 | 0.3660 to 0.3696 | 77.6% | 94.9% |
+| S-Learner | 0.3665 | 0.3645 to 0.3686 | 78.1% | 94.6% |
+| X-Learner | 0.3617 | 0.3548 to 0.3659 | 76.0% | 94.3% |
+| T-Learner | 0.3469 | 0.3363 to 0.3558 | 75.6% | 92.5% |
+| Causal Forest | 0.2941 | 0.2811 to 0.3049 | not applicable | not applicable |
 
-## Business Problem
+Full dataset, 11,183,673 training rows and 2,795,919 test rows per split, three train/test splits, Causal Forest on 25% of the training rows. Every figure is read from `results/`.
+<!-- /generated:headline -->
 
-Standard A/B testing tells you whether a campaign works on average. It cannot tell you *who* it works for.
+Three findings from the full dataset:
 
-In large-scale customer marketing, sending promotions indiscriminately creates three problems:
+1. **The top three estimators are statistically tied.** The S-Learner, the X-Learner and the S-Learner with its original settings are not separable at 95% on any of the three splits. The S-Learner is the most stable across splits, so it remains a reasonable production choice, but the benchmark does not support calling it the winner.
+2. **A single train/test split cannot rank the estimators.** The T-Learner separates from the top three on one split and not on another; the split alone moves its Qini by 0.02, as much as the gap that separated it.
+3. **The Causal Forest improves with data and still trails.** Fitting it on 25% of the training rows rather than 10% raises its Qini from 0.259 to 0.305 with non-overlapping intervals. It remains below every meta-learner on every split.
 
-1. **Wasted spend** on customers who would have converted anyway (always-converters)
-2. **Negative returns** on customers who react adversely to treatment (sleeping dogs)
-3. **Missed opportunity** on high-responders who are not being prioritized
+Targeting the top 20% of customers ranked by the S-Learner captures about 78% of the incremental visits in the test set, against 20% for random targeting.
 
-Uplift modeling — grounded in causal inference — solves this by estimating the **incremental effect** of treatment at the individual level, enabling precise targeting of customers where the campaign actually moves the needle.
-
----
-
-## Dataset
+## What is measured
 
 | Property | Value |
 |---|---|
-| Source | Criteo Uplift v2.1 |
-| Records | 13,979,592 |
-| Features | 12 continuous covariates (f0–f11) |
-| Treatment | Binary (85% treated, 15% control) |
-| Primary Outcome | `visit` (binary; 4.7% positive rate) |
-| Secondary Outcome | `conversion` (binary; 0.29% positive rate) |
+| Dataset | Criteo Uplift v2.1, 13,979,592 rows, 12 anonymized covariates |
+| Treatment | Binary, 85% treated and 15% control; propensity AUC 0.509, so assignment is close to random |
+| Outcome | `visit` (4.7% positive). Every full-data result models visits. `conversion` (0.29% positive) is run on 10% samples only |
+| Split | 80/20 train/test, repeated with three split seeds on the full dataset |
+| Metric | Qini coefficient as defined by `causalml.metrics.qini_score`, plus the share of incremental visits captured in the top 20% and 50% of the ranking |
+| Uncertainty | 200 paired bootstrap replicates over test rows per run, giving an interval for each model and for each difference between two models |
 
-Every full-data result in this README models the primary outcome, `visit`. "Incremental visits" means the extra site visits caused by the treatment.
-| Propensity AUC | 0.5093 — confirms near-random treatment assignment |
+The four estimators share one LightGBM configuration so the comparison is like for like. The S-Learner's original settings (`min_child_samples=5`, no regularization) are kept as a labelled fifth model because the first version of this benchmark used them for the S-Learner alone. The X-Learner receives the fitted propensity scores rather than fitting its own, which removes the convergence warnings the earlier version produced.
 
-The near-random propensity score (AUC ≈ 0.51) validates the quasi-experimental design, lending the CATE estimates high internal validity.
+## Results in detail
 
----
+### Full dataset, three train/test splits
 
-## Methodology
-
-### Pipeline Overview
-
-```
-Raw Data (CSV, 3GB)
-       |
-       v
-  Data Preprocessing
-  - 80/20 train-test split (random_state=42)
-  - StandardScaler normalization (12 covariates)
-  - Propensity score estimation (Logistic Regression)
-  - Feature augmentation: 12 covariates + propensity score = 13 features
-       |
-       v
-  CATE Estimation (4 Methods)
-  - S-Learner (LightGBM)
-  - T-Learner (LightGBM)
-  - X-Learner (LightGBM)
-  - Causal Forest (EconML, 10% subsample ~280K records)
-       |
-       v
-  Evaluation & Policy Simulation
-  - Qini coefficient scoring
-  - Cumulative gain curves
-  - Policy simulation (budget vs. incremental visits)
-  - Uncertainty quantification (95% CI via Causal Forest)
-  - SHAP feature importance
-```
-
-### CATE Estimation Methods
-
-**S-Learner** — Fits a single model with treatment indicator as a feature. Simple, regularizes treatment effect, reduces variance at the cost of some flexibility.
-
-**T-Learner** — Fits separate outcome models for treated and control groups, then computes the difference. Captures group-specific patterns but can overfit in imbalanced settings.
-
-**X-Learner** — Cross-fitting approach that imputes individual treatment effects by applying each group's model to the opposite group. Handles treatment imbalance (85/15 split) more robustly than T-Learner.
-
-**Causal Forest** — EconML's doubly robust Random Forest with confidence intervals. Provides uncertainty quantification at the individual level. Run on a 10% subsample (~280K records) for computational feasibility.
-
-All models use **LightGBM** as the base learner — gradient-boosted decision trees optimized for speed and performance on tabular data at scale.
-
----
-
-## Results
-
-### Model Performance Summary
-
-| Model | CATE Mean | CATE Std | Qini Score | Top 20% Capture | Top 50% Capture |
+<!-- generated:splits -->
+| Model | Split 42 | Split 43 | Split 44 | Mean | Spread |
 |---|---|---|---|---|---|
-| **S-Learner** | 0.0070 | 0.0223 | **0.3759** | **77.7%** | 95.8% |
-| X-Learner | 0.0074 | 0.0248 | 0.3615 | 76.0% | 92.8% |
-| T-Learner | 0.0074 | 0.0267 | 0.3503 | 75.1% | 92.4% |
-| Causal Forest | 0.0072 | 0.0377 | 0.2524 | — | — |
-| Random Baseline | — | — | ~0.007 | 20.0% | 50.0% |
+| S-Learner (original config) | 0.3696 [0.353, 0.387] | 0.3660 [0.353, 0.382] | 0.3675 [0.353, 0.382] | 0.3677 | 0.0036 |
+| S-Learner | 0.3663 [0.349, 0.382] | 0.3645 [0.349, 0.381] | 0.3686 [0.353, 0.385] | 0.3665 | 0.0041 |
+| X-Learner | 0.3643 [0.345, 0.386] | 0.3548 [0.336, 0.375] | 0.3659 [0.345, 0.385] | 0.3617 | 0.0111 |
+| T-Learner | 0.3363 [0.312, 0.358] | 0.3558 [0.334, 0.384] | 0.3486 [0.323, 0.380] | 0.3469 | 0.0194 |
+| Causal Forest | 0.3049 [0.281, 0.335] | 0.2811 [0.254, 0.307] | 0.2964 [0.274, 0.326] | 0.2941 | 0.0237 |
 
-> **S-Learner is the recommended production model.** It achieves the highest Qini score and top-decile capture rate with the lowest variance, making it the most stable ranking model for campaign targeting.
+Rank order by Qini:  
+split 42: S-Learner (original config) > S-Learner > X-Learner > T-Learner > Causal Forest  
+split 43: S-Learner (original config) > S-Learner > T-Learner > X-Learner > Causal Forest  
+split 44: S-Learner > S-Learner (original config) > X-Learner > T-Learner > Causal Forest
 
-### Key Business Insights
+Full dataset, 2,795,919 test rows per split, Causal Forest on 25% of training rows, 200 paired bootstrap replicates per split, 102 minutes of serverless compute in total.
+<!-- /generated:splits -->
 
-- **Targeting efficiency:** Deploying to the top 20% of customers ranked by predicted CATE captures 77.7% of all incremental visits. A random targeting strategy would capture only 20%.
-- **Heterogeneous response confirmed:** All four models independently identify meaningful variation in treatment response across customer segments, validating the uplift modeling approach.
-- **Causal Forest uncertainty:** Of the ~280K evaluated records, 1.9% are confident persuadables (lower 95% CI > 0) and 0.1% are confident sleeping dogs (upper 95% CI < 0). The remaining 98% have uncertain effect estimates, underscoring the value of probabilistic targeting over binary rule-based approaches.
-- **Feature drivers:** SHAP analysis on the T-Learner identifies which of the 12 covariates (f0–f11) most drive treatment effect heterogeneity — informing feature selection for downstream targeting systems.
+![Qini with bootstrap intervals, full dataset](results/plots/qini_intervals_databricks-visit_full_seed42_split42_cf0.25.png)
 
----
+![Qini curves, full dataset](results/plots/qini_curves_databricks-visit_full_seed42_split42_cf0.25.png)
 
-## Business Impact Framing
+### Scaling the Causal Forest
 
-Assume a hypothetical campaign of 1,000,000 customers with a cost of $1 per contact and a fixed value per incremental site visit.
+The forest was fitted on increasing shares of the training rows on Databricks Free Edition serverless compute (4 cores, 16.4 GB).
 
-| Strategy | Contacts | Incremental Visits | Revenue | Cost | Net ROI |
+<!-- generated:forest -->
+| Share of training rows | Rows | Causal Forest Qini | 95% interval | Confident persuadables | Peak memory, time |
 |---|---|---|---|---|---|
-| Untargeted (100%) | 1,000,000 | baseline | $X | $1,000,000 | baseline |
-| Top 20% (S-Learner) | 200,000 | ~77.7% of baseline | ~$0.78X | $200,000 | Significantly positive |
-| Random 20% | 200,000 | ~20% of baseline | ~$0.20X | $200,000 | Negative |
+| 10% | 1,118,367 | 0.2586 | 0.2360 to 0.2854 | 1.84% | 6.17 GB, 22 min |
+| 25% | 2,795,918 | 0.3049 | 0.2807 to 0.3355 | 1.90% | 6.39 GB, 35 min |
+| 50% | 5,591,836 | out of memory | not reached | not reached | 6.44 GB at the checkpoint, then killed |
+| 100% | 11,183,673 | out of memory | not reached | not reached | 6.64 GB at the checkpoint, then killed |
+<!-- /generated:forest -->
 
-Reducing contact volume by 80% while retaining 77.7% of incremental visits is a **3.9x improvement in targeting efficiency** versus random sampling, directly reducing customer acquisition cost (CAC).
+The meta-learners are identical across these runs; only the forest changes. Free Edition fits the forest on a quarter of the training rows and not on half.
 
----
+![Causal Forest per-row intervals](results/plots/cf_uncertainty_databricks-visit_full_seed42_split42_cf0.25.png)
 
-## Project Structure
+For about half of the test rows the forest predicts an effect below 0.001 in absolute value with an interval narrower than 0.001, while the 90th percentile interval width is 0.34. The models also disagree far more about which customers are harmed than their Qini scores suggest: the share of test rows with a negative predicted effect is 1.8% for the S-Learner, 11.2% for the Causal Forest, 16.0% for the X-Learner and 37.2% for the T-Learner (10% sample, seed 42).
 
-```
-CI project/
-├── README.md                    # This document
-├── modeling.ipynb               # End-to-end analysis notebook
-├── modeling.md                  # Notebook markdown export
-├── requirements.txt             # Python dependencies
-├── data/
-│   └── criteo-uplift-v2.1.csv   # Source dataset (3 GB, 13.98M records)
-├── plots/
-│   ├── cate_s_learner.png
-│   ├── cate_t_learner.png
-│   ├── cate_t_learner_full_clipped.png
-│   ├── learner_comparison.png
-│   ├── qini_curves.png
-│   ├── policy_simulation.png
-│   ├── shap_cate_bar.png
-│   └── shap_cate_beeswarm.png
-└── src/
-    ├── __init__.py
-    ├── preprocessing.py         # Data loading, splitting, propensity estimation, feature engineering
-    ├── learners.py              # S/T/X-Learner and Causal Forest implementations
-    ├── evaluation.py            # Qini scoring, policy simulation, uncertainty analysis
-    └── visualization.py         # CATE distributions, Qini curves, SHAP plots
-```
+### Seed variance on 10% samples
 
----
+The same benchmark on three different 10% samples of the data, for both outcomes. Levels are not comparable to the full-data results above; the point is how far the scores move between samples.
 
-## Technical Stack
-
-| Category | Libraries |
-|---|---|
-| Causal Inference | `causalml` 0.16.0, `econml` 0.16.0, `forestci` 0.6 |
-| Machine Learning | `lightgbm` 4.6.0, `scikit-learn`, `xgboost` |
-| Data Processing | `pandas`, `numpy`, `scipy`, `statsmodels` |
-| Explainability | `shap` 0.48.0 |
-| Visualization | `matplotlib`, `seaborn` |
-| Notebook | `jupyter`, `ipykernel`, `ipython` |
-
----
-
-## Reproducibility
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run full analysis
-jupyter notebook modeling.ipynb
-```
-
-The dataset (`criteo-uplift-v2.1.csv`) is required in the `data/` directory. Due to its size (3 GB), it is not tracked in version control. The Criteo Uplift dataset is publicly available from the Criteo AI Lab.
-
-All random seeds are fixed (`random_state=42`) throughout preprocessing, model training, and evaluation for full reproducibility.
-
----
-
-## Evaluation Metrics
-
-**Qini Coefficient** — The primary evaluation metric. Measures the area between the model's cumulative gain curve and the random targeting baseline. Higher values indicate better uplift ranking ability. Range: [0, 1].
-
-**Cumulative Gain Curve** — Plots the fraction of incremental visits captured as a function of the fraction of population contacted, sorted by descending predicted CATE.
-
-**Policy Simulation** — Translates the gain curve into actionable budget vs. incremental-visit tradeoff curves for campaign planning.
-
-**Confidence Intervals (Causal Forest)** — 95% bootstrap confidence intervals on individual CATE estimates, enabling probabilistic customer segmentation (persuadables, sleeping dogs, uncertain).
-
----
-
-## Reproducibility and Seed Variance
-
-Everything below is produced by `run_benchmark.py` and read from `results/*.json` by `summarize_results.py`. Each run draws a deterministic 10% hash sample of the dataset (the seed changes which rows), so these figures are not comparable in level to the full-data results above. They measure how much the comparison moves between samples.
-
-```bash
-python run_benchmark.py --sample-frac 0.1 --seed 42 --outcome visit   # downloads the data on first use
-python summarize_results.py
-pytest tests/
-```
-
-All three meta-learners share one LightGBM configuration (`make_base_learner`). "S-Learner (original config)" is the configuration the original notebook gave the S-learner alone, kept as a labelled extra. The X-learner receives the fitted propensity scores, which removes the convergence warnings its internal propensity model raised. The Causal Forest trains on every sampled training row with a seeded draw.
-
-Every run also writes its complete per-row output to `results/predictions/*.parquet` (each test row's outcome, treatment flag and every model's predicted effect, plus the Causal Forest interval), and `analysis/make_plots.py` draws every figure below from those files at full resolution.
-
-#### Outcome: `visit`
-
+<!-- generated:seeds-visit -->
 | Model | Seed 42 | Seed 43 | Seed 44 | Mean | Spread |
 |---|---|---|---|---|---|
 | S-Learner (original config) | 0.3326 | 0.3020 | 0.3317 | 0.3221 | 0.0306 |
@@ -223,9 +103,9 @@ seed 43: S-Learner > Causal Forest > T-Learner > X-Learner
 seed 44: X-Learner > S-Learner > Causal Forest > T-Learner
 
 Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warnings across runs: 0. Causal Forest confident persuadables by seed: 2.13%, 1.99%, 1.96%.
+<!-- /generated:seeds-visit -->
 
-#### Outcome: `conversion`
-
+<!-- generated:seeds-conversion -->
 | Model | Seed 42 | Seed 43 | Seed 44 | Mean | Spread |
 |---|---|---|---|---|---|
 | S-Learner (original config) | 0.3293 | 0.3944 | 0.2595 | 0.3277 | 0.1348 |
@@ -241,9 +121,13 @@ seed 43: T-Learner > X-Learner > S-Learner > Causal Forest
 seed 44: S-Learner > T-Learner > Causal Forest > X-Learner
 
 Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warnings across runs: 0. Causal Forest confident persuadables by seed: 0.28%, 0.28%, 0.26%.
+<!-- /generated:seeds-conversion -->
 
-#### Bootstrap intervals, seed 42, `visit`, 10% sample
+![Seed variance](results/plots/seed_variance_frac0.1.png)
 
+### Bootstrap intervals on one 10% sample
+
+<!-- generated:intervals-10pct -->
 | Model | Qini | 95% interval | Ranked first in replicates |
 |---|---|---|---|
 | S-Learner | 0.3444 | 0.2878 to 0.4116 | 60% |
@@ -253,86 +137,93 @@ Rows per run: 1,397,972 sampled, 1,118,377 train, 279,595 test. Convergence warn
 | Causal Forest | 0.2533 | 0.1929 to 0.3281 | 1% |
 
 Outcome `visit`, 279,595 test rows, seed 42, 200 paired bootstrap replicates. Differences whose interval excludes zero: S-Learner - Causal Forest (+0.0911, +0.0132 to +0.1802).
+<!-- /generated:intervals-10pct -->
 
-#### Full dataset, three train/test splits, on Databricks
+![Qini with bootstrap intervals, 10% sample](results/plots/qini_intervals_visit_frac0.1_seed42.png)
 
-| Model | Split 42 | Split 43 | Split 44 | Mean | Spread |
-|---|---|---|---|---|---|
-| S-Learner (original config) | 0.3696 [0.353, 0.387] | 0.3660 [0.353, 0.382] | 0.3675 [0.353, 0.382] | 0.3677 | 0.0036 |
-| S-Learner | 0.3663 [0.349, 0.382] | 0.3645 [0.349, 0.381] | 0.3686 [0.353, 0.385] | 0.3665 | 0.0041 |
-| X-Learner | 0.3643 [0.345, 0.386] | 0.3548 [0.336, 0.375] | 0.3659 [0.345, 0.385] | 0.3617 | 0.0111 |
-| T-Learner | 0.3363 [0.312, 0.358] | 0.3558 [0.334, 0.384] | 0.3486 [0.323, 0.380] | 0.3469 | 0.0194 |
-| Causal Forest | 0.3049 [0.281, 0.335] | 0.2811 [0.254, 0.307] | 0.2964 [0.274, 0.326] | 0.2941 | 0.0237 |
+### What moves a Qini score
 
-Rank order by Qini:  
-split 42: S-Learner (original config) > S-Learner > X-Learner > T-Learner > Causal Forest  
-split 43: S-Learner (original config) > S-Learner > T-Learner > X-Learner > Causal Forest  
-split 44: S-Learner > S-Learner (original config) > X-Learner > T-Learner > Causal Forest
+Two effects unrelated to model quality were measured on the seed 42 sample (`results/sensitivity_visit_frac0.1_seed42.json`):
 
-Full dataset, 2,795,919 test rows per split, Causal Forest on 25% of training rows, 200 paired bootstrap replicates per split, 102 minutes of serverless compute in total.
+- **Tie order.** Tree models give many rows the same score (89% of the S-Learner's test rows share a score with another row), and `causalml` sorts with an unstable sort, so its Qini depends on an arbitrary ordering of tied rows. Thirty random tie orders moved the S-Learner's Qini between 0.3414 and 0.3446.
+- **LightGBM thread count.** Fitting with 1, 4 or 8 threads, or in deterministic mode, moved it by 0.0014.
 
-#### Scaling the Causal Forest on Databricks Free Edition (16.4 GB serverless, full dataset, seed 42)
-
-| Share of training rows | Rows | Causal Forest Qini | 95% interval | Confident persuadables | Peak memory, time |
-|---|---|---|---|---|---|
-| 10% | 1,118,367 | 0.2586 | 0.2360 to 0.2854 | 1.84% | 6.17 GB, 22 min |
-| 25% | 2,795,918 | 0.3049 | 0.2807 to 0.3355 | 1.90% | 6.39 GB, 35 min |
-| 50% | 5,591,836 | out of memory | — | — | 6.44 GB at the checkpoint, then killed |
-| 100% | 11,183,673 | out of memory | — | — | 6.64 GB at the checkpoint, then killed |
-
-The meta-learners are identical across these runs; only the forest changes. Free Edition fits the forest on a quarter of the training rows and not on half.
-
-#### Full dataset on Databricks: Causal Forest on 1,118,367 training rows
-
-| Model | Qini | 95% interval | Ranked first in replicates |
-|---|---|---|---|
-| S-Learner (original config) | 0.3700 | 0.3527 to 0.3874 | 56% |
-| S-Learner | 0.3660 | 0.3491 to 0.3818 | 16% |
-| X-Learner | 0.3643 | 0.3449 to 0.3856 | 28% |
-| T-Learner | 0.3364 | 0.3121 to 0.3580 | 0% |
-| Causal Forest | 0.2589 | 0.2360 to 0.2854 | 0% |
-
-Outcome `visit`, 2,795,919 test rows, seed 42, 200 paired bootstrap replicates. Differences whose interval excludes zero: S-Learner - T-Learner (+0.0297, +0.0099 to +0.0500); S-Learner - Causal Forest (+0.1072, +0.0789 to +0.1297); T-Learner - X-Learner (-0.0280, -0.0495 to -0.0069); T-Learner - S-Learner (original config) (-0.0336, -0.0525 to -0.0080); T-Learner - Causal Forest (+0.0775, +0.0511 to +0.1019); X-Learner - Causal Forest (+0.1054, +0.0747 to +0.1294); S-Learner (original config) - Causal Forest (+0.1111, +0.0810 to +0.1322). Peak memory 6.17 GB, 22 minutes on 4 cores. Confident persuadables 1.84%, confident sleeping dogs 0.08%.
-
-![Qini with bootstrap intervals, full dataset](results/plots/qini_intervals_databricks-visit_full_seed42_split42_cf0.1.png)
-
-![Qini with bootstrap intervals](results/plots/qini_intervals_visit_frac0.1_seed42.png)
-
-![Seed variance](results/plots/seed_variance_frac0.1.png)
-
-![Qini curves](results/plots/qini_curves_visit_frac0.1_seed42.png)
-
-![Causal Forest per-row intervals](results/plots/cf_uncertainty_visit_frac0.1_seed42.png)
-
-![Same rows on two platforms](results/plots/platform_comparison_visit_frac0.1_seed42.png)
+The same code on the same rows also gives different LightGBM scores on Databricks (Linux, aarch64) than on a Mac (macOS, arm64): 0.302 against 0.343 for the S-Learner, while the Causal Forest agrees to 0.0002. Neither platform is noisy on its own; both reproduce their own results to tie-order precision. The cause has not been identified.
 
 ![What moves the Qini score](results/plots/noise_sources_visit_frac0.1.png)
 
-**Reading it.** On the full dataset the S-Learner, the X-Learner and the original-configuration S-Learner are not separable from each other at 95% on any split. The T-Learner is separable from them on split 42 and not on split 43, where it scores 0.356: the train/test split moves it by 0.02, as much as the gap that separated it. The Causal Forest sits below all four meta-learners on every split. A single split therefore cannot rank the meta-learners, and the bootstrap interval within one split understates how much the split itself moves the score. The headline S-Learner Qini of 0.3759 above came from one split and one unseeded run; this run's S-Learner scores 0.3660 with an interval of 0.3491 to 0.3818. On 10% samples the rank order of the estimators changes from seed to seed for both outcomes, and the spread across seeds is as large as or larger than the gaps between estimators. The bootstrap intervals say the same thing from inside one sample: at this size only the S-Learner and the Causal Forest are separable. The same code on the same rows also gives different LightGBM scores on Databricks than on a Mac (`results/databricks_visit_frac0.1_seed42.json`), by more than tie order or thread count can explain (`results/sensitivity_visit_frac0.1_seed42.json`); that cause is not yet identified. `conversion` (0.29% positive) is far noisier than `visit` (4.7%). A single split therefore cannot rank these estimators. The full-data comparison needs repeated seeds and intervals on the Qini score before one model is called the winner.
+![Same rows on two platforms](results/plots/platform_comparison_visit_frac0.1_seed42.png)
 
----
+## Reproducing the results
 
-## Limitations & Next Steps
+### Locally
 
-**Current Limitations:**
-- Causal Forest was evaluated on a 10% subsample due to computational constraints; full-population estimates may differ.
-- Feature interpretability is limited since covariates are anonymized (f0–f11); business feature naming would improve stakeholder communication.
-- The 85/15 treatment imbalance may still affect X-Learner and T-Learner stability in low-density regions of feature space.
+```bash
+pip install -r requirements.txt
+python run_benchmark.py --sample-frac 0.1 --seed 42 --outcome visit --n-boot 200   # downloads the data on first use
+python summarize_results.py --write-readme                                          # regenerates every table above
+python analysis/make_plots.py                                                       # regenerates every figure
+pytest tests/
+```
 
-**Recommended Next Steps:**
-1. **Model deployment:** Package S-Learner scoring pipeline as a REST API or batch scoring job for integration with campaign management platforms.
-2. **Online validation:** Run a prospective A/B test deploying S-Learner targeting vs. random targeting to validate Qini estimates in production.
-3. **Conversion outcome at full scale:** The full-data results above model `visit`. `conversion` has been run on 10% samples (see Reproducibility and Seed Variance) and is too noisy at that size to rank estimators. Repeat it on the full dataset with several seeds for revenue-level impact estimation.
-4. **Threshold optimization:** Define a production targeting threshold on predicted CATE that balances precision, recall, and cost constraints for specific campaign budgets.
-5. **Feature enrichment:** Join behavioral or CRM features to augment the 12 anonymized covariates and potentially improve CATE estimation accuracy.
+A 10% run takes about four minutes on an 8-core laptop and needs under 2 GB of memory. `--sample-frac 0` runs the full dataset; `--split-seed` changes the train/test split; `--cf-frac` sets the share of training rows given to the Causal Forest.
 
----
+Every run writes two files: `results/benchmark_<outcome>_<size>_seed<seed>.json` with every figure it produced, and `results/predictions/predictions_*.parquet` with the complete per-row output (each test row's outcome, treatment flag, every model's predicted effect and the Causal Forest interval). All curves and figures are drawn from the per-row files at full resolution. The per-row files for the full dataset are about 110 MB each and are kept out of the repository; they live in the Databricks volume and under `data/predictions/` locally.
 
-## Author
+### On Databricks
 
-**Aman Singh**
-Causal Inference & Applied Machine Learning
+The full-data runs were made on Databricks Free Edition serverless compute.
 
----
+```bash
+python databricks/submit.py --sample-frac 0 --seed 42 --split-seed 42 --outcome visit --cf-frac 0.25 --n-boot 200
+```
 
-*Dataset: Criteo Uplift v2.1 — Criteo AI Lab*
+`databricks/01_ingest_to_delta.py` reads the compressed CSV from a Unity Catalog volume with PySpark, writes the Delta table `workspace.upliftbench.criteo_uplift`, and asserts the row count, the row-id range and the per-arm outcome rates against the local loader. `databricks/02_benchmark_mlflow.py` runs the same `run_benchmark.run` against the volume copy of the data and logs every parameter, metric and result file to MLflow. `databricks/submit.py` uploads the current code, submits the job with serverless environment version 4 (Python 3.12), waits, and saves the result under `results/`.
+
+Two details matter on Free Edition. `causalml` and `econml` publish no wheels for the platform's aarch64 architecture and their source builds fail there, so `.github/workflows/build-arm-wheels.yml` builds both wheels on a free GitHub ARM runner inside a `manylinux_2_28` container; the job installs them from the volume. And a notebook task runs on the default Python 3.11 environment, where those wheels cannot install, so the benchmark is submitted as a Python script task with an explicit environment.
+
+`results/databricks_environment_probes.json` records what the environment provides (4 cores, 16.4 GB, library versions, network reachability) and the exact build errors. `results/databricks_job_runs.json` logs every job run, including the failures.
+
+## Project layout
+
+```
+run_benchmark.py            One run: load, split, fit the five models, score, bootstrap, write results and predictions
+summarize_results.py        Builds every README table from results/*.json (--write-readme rewrites them in place)
+src/
+  preprocessing.py          Download, DuckDB loader with a deterministic hash sample, split, propensity, features
+  learners.py               S-, T-, X-Learner and Causal Forest wrappers with one shared base-learner configuration
+  evaluation.py             Qini scoring, policy simulation, outcome-aware labels
+  intervals.py              Fast Qini, complete Qini curves, paired bootstrap intervals
+  visualization.py          The original notebook's plots
+analysis/
+  make_plots.py             Every figure in results/plots, drawn from the result and per-row files
+  sensitivity.py            Tie-order and thread-count experiments
+  capture_databricks_probes.py
+databricks/
+  01_ingest_to_delta.py     PySpark ingest of the CSV to a Delta table, with assertions
+  02_benchmark_mlflow.py    The benchmark as a serverless job with MLflow tracking
+  submit.py                 Uploads the code, submits the job, saves the result
+results/                    Every result file, the per-row predictions for the 10% runs, and 53 figures
+tests/                      Seeding, outcome selection, the X-Learner fit, Qini equality with causalml, the bootstrap
+modeling.ipynb              The original exploratory notebook, kept as run
+```
+
+## Methods
+
+- **S-Learner** fits one model with the treatment indicator as a feature and predicts the difference between the treated and untreated prediction for each row.
+- **T-Learner** fits separate outcome models for the treated and control groups and takes the difference.
+- **X-Learner** imputes each group's treatment effects with the other group's model and combines the two estimates with the propensity score.
+- **Causal Forest** (EconML `CausalForest`, 100 trees) estimates the effect and a 95% interval for each row.
+- **Qini** follows `causalml.metrics.qini_score` with `normalize=True`. `src/intervals.py` reimplements it in NumPy, tested equal to within 1e-10, so that a paired bootstrap of 200 replicates over 2.8 million rows runs in minutes.
+
+## Limitations
+
+- Only `visit` is modelled at full scale. `conversion` (0.29% positive) is far noisier at 10% scale and would need the full dataset and several splits before any model could be ranked on it.
+- The features are anonymized, so the SHAP analysis in the notebook identifies covariate indices rather than business meaning.
+- The cross-platform difference in LightGBM scores is unexplained.
+- The Causal Forest was fitted on at most 25% of the training rows because of the memory available on Free Edition.
+- The published abstract for the first version of this work reported a single unseeded run and described the outcome as conversions. The tables above supersede those figures.
+
+## Data
+
+Criteo Uplift v2.1 is downloaded on first use from the `criteo/criteo-uplift` dataset on Hugging Face (311 MB compressed). It is not stored in this repository.
