@@ -1,6 +1,6 @@
 # UpliftBench
 
-**A reproducible benchmark of four heterogeneous-treatment-effect estimators on 13.98 million Criteo customer records, with bootstrap intervals, repeated train/test splits, and a Databricks pipeline.**
+**A reproducible benchmark of four heterogeneous-treatment-effect estimators on 13.98 million Criteo customer dataset, with bootstrap intervals, repeated train/test splits, and a Databricks pipeline.**
 
 Uplift modeling asks which customers a marketing treatment actually moves. This repository benchmarks the S-Learner, T-Learner and X-Learner (LightGBM base learners) and EconML's Causal Forest on the Criteo Uplift v2.1 dataset, scores them with the Qini coefficient, and reports how much of the difference between models is noise. The answer is most of it: on the full dataset the three best estimators cannot be told apart at 95%.
 
